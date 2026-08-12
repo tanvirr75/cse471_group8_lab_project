@@ -5,6 +5,7 @@ const connectDB = require("./src/config/db");
 
 const jobRoutes = require("./src/routes/jobRoutes");
 const applicationRoutes = require("./src/routes/applicationRoutes");
+const githubRoutes = require("./src/routes/githubRoutes");
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
+app.use("/api/github", githubRoutes);
 
 app.get("/", (req, res) => {
   res.send("SkillSync API is running");
