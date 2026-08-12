@@ -27,6 +27,19 @@ export async function applyToJob(jobId) {
   return res.json();
 }
 
+// Feature 5: language / repository analysis for one GitHub username.
+// Unlike the helpers above we check res.ok here, because this endpoint can
+// legitimately fail (unknown username, GitHub rate limit) and the card needs
+// to show that message to the user.
+export async function getGithubAnalysis(username) {
+  const res = await fetch(`${API_URL}/api/github/${username}/analysis`);
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Could not load GitHub analysis");
+  }
+  return data;
+}
+
 export async function getMyApplications() {
   const res = await fetch(`${API_URL}/api/applications`, {
     headers: { "x-user-id": DEV_USER_ID },

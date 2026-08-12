@@ -18,6 +18,13 @@ app.get('/', (req, res) => {
 });
 
 // Add routes here later
+const jobRoutes = require('./routes/jobRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const githubRoutes = require('./routes/githubRoutes');
+
+app.use('/api/jobs', jobRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/github', githubRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
