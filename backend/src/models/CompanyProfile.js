@@ -12,8 +12,11 @@ const companyProfileSchema = new mongoose.Schema(
     
     // Core company details
     companyName: { type: String, required: true },
+    logo: { type: String, default: '' }, // Cloudinary URL
     industry: { type: String, default: '' },
+    location: { type: String, default: '' },
     websiteUrl: { type: String, default: '' },
+    contactEmail: { type: String, default: '' },
     description: { type: String, default: '' },
     
     // Verification documents (e.g. business registration links)
