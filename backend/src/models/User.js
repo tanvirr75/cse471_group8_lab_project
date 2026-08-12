@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema(
       enum: ['student', 'recruiter', 'university', 'admin'],
       default: 'student',
     },
+    profilePicture: {
+      type: String,
+      default: '', // Will store the Cloudinary image URL
+    },
     isVerified: {
       type: Boolean,
       default: false, // For students: email verification. For recruiters: admin verification.
