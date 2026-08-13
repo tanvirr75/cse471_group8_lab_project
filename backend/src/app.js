@@ -21,10 +21,14 @@ app.get('/', (req, res) => {
 const jobRoutes = require('./routes/jobRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const githubRoutes = require('./routes/githubRoutes');
+const githubAccountRoutes = require('./routes/githubAccountRoutes');
 
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/github', githubRoutes);
+// Feature 1 - different prefix from '/api/github' (Feature 5) so the two
+// GitHub features don't collide.
+app.use('/api/github-account', githubAccountRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -38,6 +38,9 @@ const userSchema = new mongoose.Schema(
     verificationToken: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    // Feature 1: GitHub Account Integration - the student's own GitHub
+    // username, saved after we confirm it exists on GitHub.
+    githubUsername: { type: String, default: '' },
   },
   {
     timestamps: true,
