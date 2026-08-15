@@ -15,6 +15,17 @@ export default function JobsPage() {
     getMatches().then((data) => {
       setJobs(data);
       setLoading(false);
+      
+      // Feature 12: Notify if any job match clears 80%
+      if (data.length > 0 && data[0].matchPercent >= 80) {
+        // Find how many jobs matched > 80%
+        const highMatches = data.filter(job => job.matchPercent >= 80).length;
+        // Check if we already notified this session to avoid spam
+        if (!sessionStorage.getItem('notified_high_matches')) {
+          alert(`Great news! You have ${highMatches} job(s) with an 80%+ match rate. Check them out!`);
+          sessionStorage.setItem('notified_high_matches', 'true');
+        }
+      }
     });
   }, []);
 

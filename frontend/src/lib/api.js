@@ -1,4 +1,4 @@
-﻿const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 const DEV_USER_ID = "64f1a2b3c4d5e6f7a8b9c0d1";
 
@@ -9,7 +9,9 @@ export async function getJobs(params = {}) {
 }
 
 export async function getMatches() {
-  const res = await fetch(`${API_URL}/api/jobs/matches`);
+  const res = await fetch(`${API_URL}/api/jobs/matches`, {
+    headers: { "x-user-id": DEV_USER_ID },
+  });
   return res.json();
 }
 
