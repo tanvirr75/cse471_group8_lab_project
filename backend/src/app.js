@@ -21,10 +21,20 @@ app.get('/', (req, res) => {
 const jobRoutes = require('./routes/jobRoutes');
 const applicationRoutes = require('./routes/applicationRoutes');
 const githubRoutes = require('./routes/githubRoutes');
+const integrationsRoutes = require('./routes/integrations');
+const portfolioRoutes = require('./routes/portfolio');
+const notificationsRoutes = require('./routes/notifications');
+const resumeRoutes = require('./routes/resume');
+const roadmapRoutes = require('./routes/RoadmapRoutes');
 
 app.use('/api/jobs', jobRoutes);
 app.use('/api/applications', applicationRoutes);
 app.use('/api/github', githubRoutes);
+app.use('/api/integrations', integrationsRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/resume', resumeRoutes);
+app.use('/api/readiness', roadmapRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
