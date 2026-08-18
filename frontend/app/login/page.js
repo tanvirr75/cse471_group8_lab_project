@@ -23,10 +23,15 @@ export default function LoginPage() {
       // Save auth data
       localStorage.setItem('token', data.token);
       localStorage.setItem('userId', data.userId);
-      localStorage.setItem('userRole', data.role || 'student');
+      const userRole = data.role || 'student';
+      localStorage.setItem('userRole', userRole);
       
-      // Redirect to jobs page
-      router.push('/jobs');
+      // Redirect to correct dashboard based on role
+      if (userRole === 'student') router.push('/student/dashboard');
+      else if (userRole === 'recruiter') router.push('/recruiter/dashboard');
+      else if (userRole === 'university') router.push('/university/dashboard');
+      else if (userRole === 'admin') router.push('/admin/dashboard');
+      else router.push('/jobs');
     } catch (err) {
       setError(err.message || 'Failed to login');
       setIsLoading(false);

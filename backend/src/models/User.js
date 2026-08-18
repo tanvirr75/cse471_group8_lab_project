@@ -33,11 +33,19 @@ const userSchema = new mongoose.Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false, // For students: email verification. For recruiters: admin verification.
+      default: false, // For students: email verification. For recruiters/universities: admin verification.
     },
     verificationToken: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    // Generalized and Role-specific fields
+    university: String,
+    department: String,
+    targetRole: String,
+    githubUsername: String,
+    linkedinUrl: String,
+    companyName: String,
+    universityName: String
   },
   {
     timestamps: true,
