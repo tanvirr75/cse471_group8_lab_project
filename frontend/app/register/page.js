@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
+import { registerUser } from '../../src/lib/api';
+import { useRouter } from 'next/navigation';
+
 export default function RegisterPage() {
   const searchParams = useSearchParams();
   const initialRole = searchParams.get('role') || 'student';
@@ -13,12 +16,27 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(initialRole);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // TODO: Connect to backend API
-    setTimeout(() => setIsLoading(false), 1000);
+    setError('');
+    
+    try {
+      const data = await registerUser({ name, email, password, role });
+      // Save auth data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.userId);
+      localStorage.setItem('userRole', data.role || role);
+      
+      // Redirect to jobs page
+      router.push('/jobs');
+    } catch (err) {
+      setError(err.message || 'Failed to create account');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -37,6 +55,13 @@ export default function RegisterPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white dark:bg-slate-900 py-8 px-4 shadow-xl shadow-slate-200/20 dark:shadow-none sm:rounded-2xl sm:px-10 border border-slate-100 dark:border-slate-800">
+          
+          {error && (
+            <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             
             {/* Role Selection */}
