@@ -1,9 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getMatches } from "../../lib/api";
-import Button from "../../components/common/Button";
-import { getAvatarColor } from "../../utils/avatarColor";
+import { getMatches } from "@/lib/api";
+import Button from "@/components/common/Button";
+import { getAvatarColor } from "@/utils/avatarColor";
 
 const FILTERS = ["Role type", "Workplace", "Location", "Sort"];
 
