@@ -2,9 +2,9 @@
 import { Suspense, useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { getJobById, applyToJob } from "../../../lib/api";
-import Button from "../../../components/common/Button";
-import { getAvatarColor } from "../../../utils/avatarColor";
+import { getJobById, applyToJob } from "@/lib/api";
+import Button from "@/components/common/Button";
+import { getAvatarColor } from "@/utils/avatarColor";
 
 // useSearchParams() requires a Suspense boundary for static prerendering,
 // so the page body lives in an inner component wrapped below.

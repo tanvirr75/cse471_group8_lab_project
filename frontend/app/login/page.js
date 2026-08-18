@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 
-import { loginUser } from '../../src/lib/api';
+import { loginUser } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {

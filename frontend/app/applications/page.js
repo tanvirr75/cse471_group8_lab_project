@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { getMyApplications } from "../../lib/api";
-import { getAvatarColor } from "../../utils/avatarColor";
-import { timeAgo } from "../../utils/timeAgo";
+import { getMyApplications } from "@/lib/api";
+import { getAvatarColor } from "@/utils/avatarColor";
+import { timeAgo } from "@/utils/timeAgo";
 
 // The mockup only has 4 kanban columns, so "under_review" is grouped into
 // "Applied" below - both mean "submitted, no interview yet".
