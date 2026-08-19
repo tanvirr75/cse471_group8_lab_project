@@ -98,3 +98,14 @@ export async function updateApplicationStatus(id, status) {
   });
   return res.json();
 }
+
+export async function getUniversityAnalytics() {
+  const res = await fetch(`${API_URL}/api/university/analytics`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || "Failed to load university analytics");
+  }
+  return data;
+}
