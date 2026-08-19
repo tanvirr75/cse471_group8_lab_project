@@ -12,7 +12,7 @@ exports.getAnalytics = async (req, res) => {
       return res.status(404).json({ message: 'University account not found' });
     }
 
-    const uniName = universityUser.universityName || universityUser.companyName;
+    const uniName = universityUser.universityName || universityUser.companyName || universityUser.name;
 
     if (!uniName) {
        return res.status(400).json({ message: 'University name not configured for this account' });
