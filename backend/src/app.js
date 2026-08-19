@@ -35,6 +35,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/readiness', roadmapRoutes);
+app.use('/api/university', require('./routes/universityRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
