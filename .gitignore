@@ -28,3 +28,7 @@ yarn-error.log*
 .env.development
 .env.test
 .env.production
+
+# AI Assistant files
+AGENTS.md
+CLAUDE.md
