@@ -35,8 +35,17 @@ exports.getMatches = async (req, res) => {
 
     const UserProfile = require("../models/UserProfile");
     const userProfile = await UserProfile.findOne({ userId });
-    
-    const jobs = await Job.find({ status: 'open' }).sort({ createdAt: -1 });
+
+    // Filter which jobs get scored, same conditional pattern as getJobs above.
+    // type/workplace are enums so they can match exactly, but location is free
+    // text ("Dhaka, Bangladesh"), so it uses a case-insensitive partial match.
+    const { type, workplace, location } = req.query;
+    const filter = { status: 'open' };
+    if (type) filter.type = type;
+    if (workplace) filter.workplace = workplace;
+    if (location) filter.location = { $regex: location, $options: "i" };
+
+    const jobs = await Job.find(filter).sort({ createdAt: -1 });
 
     if (!userProfile) {
       // Fallback if no profile

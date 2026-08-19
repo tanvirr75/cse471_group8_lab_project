@@ -49,8 +49,10 @@ export async function getJobs(params = {}) {
   return res.json();
 }
 
-export async function getMatches() {
-  const res = await fetch(`${API_URL}/api/jobs/matches`, {
+export async function getMatches(params = {}) {
+  // Same query-string pattern as getJobs, so the matches page can filter too.
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(`${API_URL}/api/jobs/matches?${query}`, {
     headers: getAuthHeaders(),
   });
   return res.json();
