@@ -88,6 +88,25 @@ export default function ApplicationsPage() {
                         <p className="text-xs text-text-muted truncate">{app.jobId?.company}</p>
                       </div>
                     </div>
+                    
+                    {app.status === 'interview' && app.interviewDetails && (
+                      <div className="mt-3 bg-surface-dark border border-primary/30 rounded p-2 text-xs">
+                        <div className="text-primary font-bold mb-1 flex items-center gap-1">
+                          📅 Interview Scheduled
+                        </div>
+                        <p className="text-text-light"><span className="text-text-muted">When:</span> {app.interviewDetails.date} at {app.interviewDetails.time}</p>
+                        <p className="text-text-light"><span className="text-text-muted">Where:</span> {app.interviewDetails.platform}</p>
+                        <a href={app.interviewDetails.linkOrLocation} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate block mt-1">
+                          {app.interviewDetails.linkOrLocation}
+                        </a>
+                        {app.interviewDetails.message && (
+                          <p className="mt-2 text-text-muted italic border-t border-border-dark pt-1">
+                            "{app.interviewDetails.message}"
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     <span className="mt-2 inline-block rounded-full bg-surface-dark px-2 py-0.5 text-[11px] text-text-muted">
                       {timeAgo(app.appliedAt)}
                     </span>

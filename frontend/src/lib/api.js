@@ -109,3 +109,22 @@ export async function getUniversityAnalytics() {
   }
   return data;
 }
+export async function getRecruiterApplications() {
+  const res = await fetch(`${API_URL}/api/applications/recruiter`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load recruiter applications");
+  return data;
+}
+
+export async function scheduleInterview(applicationId, interviewData) {
+  const res = await fetch(`${API_URL}/api/applications/${applicationId}/interview`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(interviewData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to schedule interview");
+  return data;
+}
