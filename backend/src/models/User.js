@@ -34,6 +34,14 @@ const userSchema = new mongoose.Schema(
     verificationToken: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+
+    // onboarding
+    githubUrl: { type: String, default: '' },
+    linkedinUrl: { type: String, default: '' },
+    resumeUrl: { type: String, default: '' },
+    onboardingCompleted: { type: Boolean, default: false },
+    university: { type: String, default: '' },
+    department: { type: String, default: '' },
   },
   {
     timestamps: true,

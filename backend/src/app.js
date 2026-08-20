@@ -11,6 +11,9 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/profile', require('./routes/profileRoutes'));
+app.use('/api/portfolio', require('./routes/portfolio'));
 
 // Basic route
 app.get('/', (req, res) => {
