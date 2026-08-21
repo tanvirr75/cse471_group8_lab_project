@@ -8,10 +8,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Routes all
 const authRoutes = require('./routes/authRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/resume', require('./routes/resume'));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use('/api/portfolio', require('./routes/portfolio'));
 
@@ -19,8 +20,6 @@ app.use('/api/portfolio', require('./routes/portfolio'));
 app.get('/', (req, res) => {
   res.send('SkillSync API is running...');
 });
-
-// Add routes here later
 
 // Error handling middleware
 app.use((err, req, res, next) => {

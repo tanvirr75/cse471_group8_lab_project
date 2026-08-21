@@ -1,9 +1,6 @@
 const User = require('../models/User');
 const generateToken = require('../utils/generateToken');
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
 const registerUser = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
@@ -38,9 +35,6 @@ const registerUser = async (req, res, next) => {
   }
 };
 
-// @desc    Auth user & get token
-// @route   POST /api/auth/login
-// @access  Public
 const loginUser = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -64,9 +58,7 @@ const loginUser = async (req, res, next) => {
   }
 };
 
-// @desc    Get user profile
-// @route   GET /api/auth/profile
-// @access  Private
+
 const getUserProfile = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);

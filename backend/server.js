@@ -1,25 +1,11 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-dotenv.config();
-const app = express();
-app.use(cors());
-app.use(express.json());
+require('dotenv').config();
+const app = require('./src/app');
+const connectDB = require('./src/config/db');
 
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/integrations', require('./routes/integrations'));
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/portfolio', require('./routes/portfolio'));
-app.use('/api/notifications', require('./routes/notifications'));
+const PORT = process.env.PORT || 5002;
 
-app.get('/', (req, res) => res.send('SkillSync Backend is running!'));
-
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
-
-console.log("MONGO_URI from ENV:", process.env.MONGO_URI);
-
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.log('⚠️ MongoDB error:', err.message));
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`✅ Server running on http://localhost:${PORT}`);
+  });
+});

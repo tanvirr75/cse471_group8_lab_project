@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const PortfolioSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    avatarInitials: { type: String, default: 'NH' }, // ডিফল্ট অ্যাভাটার
+    avatarInitials: { type: String, default: 'NH' },
     fullName: { type: String, required: true },
-    title: { type: String, required: true }, // e.g. Backend Developer
+    title: { type: String, required: true },
     university: { type: String },
     employabilityScore: { type: Number, default: 0 },
     bio: { type: String },

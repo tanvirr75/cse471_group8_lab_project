@@ -3,40 +3,33 @@ const router = express.Router();
 const Portfolio = require('../models/Portfolio');
 const { protect } = require('../middlewares/authMiddleware');
 
-// GET: লগইন করা ইউজারের পোর্টফোলিও ডাটা আনা
+// লগইন করা ইউজারের সব পোর্টফোলিও দেখুন (লিস্ট আকারে)
 router.get('/me', protect, async (req, res) => {
   try {
-    const portfolio = await Portfolio.findOne({ userId: req.user._id });
-    if (!portfolio) {
-      return res.status(404).json({ message: 'Portfolio not found. Please create one.' });
-    }
-    res.status(200).json(portfolio);
+    const portfolios = await Portfolio.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json(portfolios);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// POST: পোর্টফোলিও তৈরি করা (যদি আগে থেকে না থাকে)
+// নতুন পোর্টফোলিও তৈরি করুন (এখন আর "already exists" চেক নেই)
 router.post('/', protect, async (req, res) => {
   try {
-    const existing = await Portfolio.findOne({ userId: req.user._id });
-    if (existing) {
-      return res.status(400).json({ message: 'Portfolio already exists. Use PUT to update.' });
-    }
+    const { fullName, title, university, avatarInitials, links, projects, skills, certifications } = req.body;
 
-    const { fullName, title, university, employabilityScore, bio, links, projects, skills, certifications } = req.body;
     const portfolio = new Portfolio({
       userId: req.user._id,
       fullName,
       title,
       university,
-      employabilityScore,
-      bio,
+      avatarInitials,
       links,
       projects,
       skills,
       certifications
     });
+
     await portfolio.save();
     res.status(201).json(portfolio);
   } catch (error) {
@@ -44,25 +37,24 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// PUT: পোর্টফোলিও আপডেট করা
+// পোর্টফোলিও আপডেট করুন (যেটা এডিট করতে চান)
 router.put('/', protect, async (req, res) => {
   try {
-    const portfolio = await Portfolio.findOne({ userId: req.user._id });
+    // সবচেয়ে সাম্প্রতিক পোর্টফোলিওটি আপডেট হবে (অথবা আপনি আইডি পাঠালে সেটি আপডেট হবে)
+    const portfolio = await Portfolio.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
+    
     if (!portfolio) {
       return res.status(404).json({ message: 'Portfolio not found' });
     }
 
-    const { fullName, title, university, employabilityScore, bio, links, projects, skills, certifications } = req.body;
-
-    portfolio.fullName = fullName || portfolio.fullName;
-    portfolio.title = title || portfolio.title;
-    portfolio.university = university || portfolio.university;
-    portfolio.employabilityScore = employabilityScore || portfolio.employabilityScore;
-    portfolio.bio = bio || portfolio.bio;
-    portfolio.links = links || portfolio.links;
-    portfolio.projects = projects || portfolio.projects;
-    portfolio.skills = skills || portfolio.skills;
-    portfolio.certifications = certifications || portfolio.certifications;
+    portfolio.fullName = req.body.fullName || portfolio.fullName;
+    portfolio.title = req.body.title || portfolio.title;
+    portfolio.university = req.body.university || portfolio.university;
+    portfolio.avatarInitials = req.body.avatarInitials || portfolio.avatarInitials;
+    portfolio.links = req.body.links || portfolio.links;
+    portfolio.projects = req.body.projects || portfolio.projects;
+    portfolio.skills = req.body.skills || portfolio.skills;
+    portfolio.certifications = req.body.certifications || portfolio.certifications;
 
     await portfolio.save();
     res.status(200).json(portfolio);
