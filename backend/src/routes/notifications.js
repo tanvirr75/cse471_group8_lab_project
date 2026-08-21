@@ -3,7 +3,7 @@ const router = express.Router();
 const Notification = require('../models/Notification');
 const { protect } = require('../middlewares/authMiddleware');
 
-// log in user notifications
+// লগইন করা ইউজারের নোটিফিকেশন দেখুন
 router.get('/', protect, async (req, res) => {
   try {
     const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 });
@@ -13,7 +13,7 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-// Notification
+// নতুন নোটিফিকেশন তৈরি করুন
 router.post('/create', protect, async (req, res) => {
   try {
     const { type, title, body } = req.body;

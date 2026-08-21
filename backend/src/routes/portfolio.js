@@ -13,7 +13,7 @@ router.get('/me', protect, async (req, res) => {
   }
 });
 
-// নতুন পোর্টফোলিও তৈরি করুন (এখন আর "already exists" চেক নেই)
+// নতুন পোর্টফোলিও তৈরি করুন
 router.post('/', protect, async (req, res) => {
   try {
     const { fullName, title, university, avatarInitials, links, projects, skills, certifications } = req.body;
@@ -37,10 +37,9 @@ router.post('/', protect, async (req, res) => {
   }
 });
 
-// পোর্টফোলিও আপডেট করুন (যেটা এডিট করতে চান)
+// পোর্টফোলিও আপডেট করুন
 router.put('/', protect, async (req, res) => {
   try {
-    // সবচেয়ে সাম্প্রতিক পোর্টফোলিওটি আপডেট হবে (অথবা আপনি আইডি পাঠালে সেটি আপডেট হবে)
     const portfolio = await Portfolio.findOne({ userId: req.user._id }).sort({ createdAt: -1 });
     
     if (!portfolio) {

@@ -19,10 +19,17 @@ const PortfolioSchema = new mongoose.Schema(
         title: { type: String },
         description: { type: String },
         techStack: [String],
+        repoUrl: { type: String },
       },
     ],
     skills: [String],
-    certifications: [String],
+    certifications: [
+      {
+        name: { type: String },
+        issuer: { type: String },
+        year: { type: Number },
+      },
+    ],
   },
   { timestamps: true }
 );

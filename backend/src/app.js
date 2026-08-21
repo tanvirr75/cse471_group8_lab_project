@@ -8,13 +8,31 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes all
+// Routes (সব ইমপোর্ট একসাথে)
 const authRoutes = require('./routes/authRoutes');
+const notificationsRoutes = require('./routes/notifications');
+const resumeRoutes = require('./routes/resume');
+const profileRoutes = require('./routes/profileRoutes');
+const portfolioRoutes = require('./routes/portfolio');
+const jobRoutes = require('./routes/jobRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const githubRoutes = require('./routes/githubRoutes');
+const integrationsRoutes = require('./routes/integrations');
+const roadmapRoutes = require('./routes/RoadmapRoutes');
+const universityRoutes = require('./routes/universityRoutes');
+
+// App Routes (আপনার + টিমের রাউটগুলো একসাথে)
 app.use('/api/auth', authRoutes);
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/resume', require('./routes/resume'));
-app.use('/api/profile', require('./routes/profileRoutes'));
-app.use('/api/portfolio', require('./routes/portfolio'));
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/resume', resumeRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/github', githubRoutes);
+app.use('/api/integrations', integrationsRoutes);
+app.use('/api/readiness', roadmapRoutes);
+app.use('/api/university', universityRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
