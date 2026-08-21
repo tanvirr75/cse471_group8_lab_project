@@ -6,6 +6,7 @@ export default function Sidebar() {
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Career Readiness', href: '/readiness' },
     { name: 'Job Matches', href: '/jobs' },
+    { name: 'Recommendations', href: '/recommendations' },
     { name: 'Portfolio', href: '/portfolio' },
     { name: 'Applications', href: '/applications' },
   ];
