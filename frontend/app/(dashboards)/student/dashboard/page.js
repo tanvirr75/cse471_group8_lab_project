@@ -15,8 +15,8 @@ export default function StudentDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  const totalApps = applications.length;
-  const interviews = applications.filter(app => app.status === 'interview');
+  const totalApps = Array.isArray(applications) ? applications.length : 0;
+  const interviews = Array.isArray(applications) ? applications.filter(app => app.status === 'interview') : [];
   const upcomingInterviewCount = interviews.length;
 
   return (
