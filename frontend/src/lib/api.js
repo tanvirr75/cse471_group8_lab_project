@@ -4,20 +4,22 @@ const DEV_USER_ID = "64f1a2b3c4d5e6f7a8b9c0d1"; // Kept for backwards compatibil
 
 // Helper to get auth headers
 const getAuthHeaders = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-  const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
-  
+  const token =
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const userId =
+    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+
   const headers = {
     "Content-Type": "application/json",
   };
-  
+
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  
+
   // Use real userId if logged in, otherwise fallback to DEV_USER_ID so other pages don't break
   headers["x-user-id"] = userId || DEV_USER_ID;
-  
+
   return headers;
 };
 
@@ -116,17 +118,35 @@ export async function getRecruiterApplications() {
     headers: getAuthHeaders(),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || "Failed to load recruiter applications");
+  if (!res.ok)
+    throw new Error(data.message || "Failed to load recruiter applications");
   return data;
 }
 
 export async function scheduleInterview(applicationId, interviewData) {
-  const res = await fetch(`${API_URL}/api/applications/${applicationId}/interview`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(interviewData),
-  });
+  const res = await fetch(
+    `${API_URL}/api/applications/${applicationId}/interview`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(interviewData),
+    },
+  );
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Failed to schedule interview");
+  return data;
+}
+
+// Feature 11: persisted recommendations from the smart recommendation engine.
+// Pass { refresh: "true" } to force a re-score of every open job.
+export async function getRecommendations(params = {}) {
+  const query = new URLSearchParams(params).toString();
+  const res = await fetch(
+    `${API_URL}/api/recommendations${query ? `?${query}` : ""}`,
+    { headers: getAuthHeaders() },
+  );
+  const data = await res.json();
+  if (!res.ok)
+    throw new Error(data.message || "Failed to load recommendations");
   return data;
 }
