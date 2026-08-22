@@ -20,21 +20,23 @@ export default function ApplicationsPage() {
     getMyApplications().then(setApplications);
   }, []);
 
-  const total = applications.length;
-  const interviewing = applications.filter((app) => app.status === "interview").length;
-  const offers = applications.filter((app) => app.status === "accepted").length;
+  const safeApplications = Array.isArray(applications) ? applications : [];
+
+  const total = safeApplications.length;
+  const interviewing = safeApplications.filter((app) => app.status === "interview").length;
+  const offers = safeApplications.filter((app) => app.status === "accepted").length;
 
   // Response Rate = share of applications that have moved past the initial
   // "applied" status (under_review, interview, rejected, or accepted) - i.e.
   // the company has responded in some way. Rounded to the nearest percent.
-  const responded = applications.filter((app) => app.status !== "applied").length;
+  const responded = safeApplications.filter((app) => app.status !== "applied").length;
   const responseRate = total > 0 ? Math.round((responded / total) * 100) : 0;
 
   function applicationsForColumn(key) {
     if (key === "applied") {
-      return applications.filter((app) => app.status === "applied" || app.status === "under_review");
+      return safeApplications.filter((app) => app.status === "applied" || app.status === "under_review");
     }
-    return applications.filter((app) => app.status === key);
+    return safeApplications.filter((app) => app.status === key);
   }
 
   const stats = [
@@ -88,7 +90,7 @@ export default function ApplicationsPage() {
                         <p className="text-xs text-text-muted truncate">{app.jobId?.company}</p>
                       </div>
                     </div>
-                    
+
                     {app.status === 'interview' && app.interviewDetails && (
                       <div className="mt-3 bg-surface-dark border border-primary/30 rounded p-2 text-xs">
                         <div className="text-primary font-bold mb-1 flex items-center gap-1">
