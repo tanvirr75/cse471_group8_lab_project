@@ -1,7 +1,7 @@
 const express = require('express');
-const bcrypt = require('bcryptjs'); 
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); 
+const User = require('../models/User');
 const router = express.Router();
 
 // Register Route
@@ -14,14 +14,12 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Prevent public admin registration
     const userRole = role === 'admin' ? 'student' : (role || 'student');
 
-    // Do NOT hash manually, User model pre('save') hook handles it
     const newUser = new User({
       name,
       email,
-      password, // Send plain password, Mongoose will hash it
+      password,
       role: userRole,
       university,
       department,
@@ -34,7 +32,6 @@ router.post('/register', async (req, res) => {
 
     await newUser.save();
 
-    // Generate JWT token
     const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, {
       expiresIn: '30d',
     });
@@ -57,24 +54,17 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Check if user exists (include password since select is false in model)
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
-
-    // Check if password matches
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid email or password' });
     }
-
-    // Generate JWT token
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
       expiresIn: '30d',
     });
-
     res.status(200).json({
       message: 'Logged in successfully',
       token,
@@ -82,7 +72,6 @@ router.post('/login', async (req, res) => {
       email: user.email,
       role: user.role
     });
-
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });

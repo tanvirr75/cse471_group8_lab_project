@@ -9,35 +9,37 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-const authRoutes = require("./routes/authRoutes");
-app.use("/api/auth", authRoutes);
+const authRoutes = require('./routes/authRoutes');
+const notificationsRoutes = require('./routes/notifications');
+const resumeRoutes = require('./routes/resume');
+const profileRoutes = require('./routes/profileRoutes');
+const portfolioRoutes = require('./routes/portfolio');
+const jobRoutes = require('./routes/jobRoutes');
+const applicationRoutes = require('./routes/applicationRoutes');
+const githubRoutes = require('./routes/githubRoutes');
+const integrationsRoutes = require('./routes/integrations');
+const roadmapRoutes = require('./routes/RoadmapRoutes');
+const universityRoutes = require('./routes/universityRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+
+// App Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/notifications', notificationsRoutes);
+app.use('/api/resume', resumeRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/github', githubRoutes);
+app.use('/api/integrations', integrationsRoutes);
+app.use('/api/readiness', roadmapRoutes);
+app.use('/api/university', universityRoutes);
+app.use('/api/recommendations', recommendationRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
   res.send("SkillSync API is running...");
 });
-
-// Add routes here later
-const jobRoutes = require("./routes/jobRoutes");
-const applicationRoutes = require("./routes/applicationRoutes");
-const githubRoutes = require("./routes/githubRoutes");
-const integrationsRoutes = require("./routes/integrations");
-const portfolioRoutes = require("./routes/portfolio");
-const notificationsRoutes = require("./routes/notifications");
-const resumeRoutes = require("./routes/resume");
-const roadmapRoutes = require("./routes/RoadmapRoutes");
-const recommendationRoutes = require("./routes/recommendationRoutes");
-
-app.use("/api/jobs", jobRoutes);
-app.use("/api/applications", applicationRoutes);
-app.use("/api/github", githubRoutes);
-app.use("/api/integrations", integrationsRoutes);
-app.use("/api/portfolio", portfolioRoutes);
-app.use("/api/notifications", notificationsRoutes);
-app.use("/api/resume", resumeRoutes);
-app.use("/api/readiness", roadmapRoutes);
-app.use("/api/recommendations", recommendationRoutes);
-app.use("/api/university", require("./routes/universityRoutes"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
