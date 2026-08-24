@@ -1,4 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+let API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+// Magic fix for GitHub Codespaces (Web): If running in the browser on a .github.dev domain,
+// dynamically replace the frontend port (3000) with the backend port (5002) to fix CORS and Failed to Fetch!
+if (typeof window !== "undefined" && window.location.hostname.includes("github.dev")) {
+  API_URL = window.location.origin.replace("-3000", "-5002");
+}
 
 const DEV_USER_ID = "64f1a2b3c4d5e6f7a8b9c0d1"; // Kept for backwards compatibility with other features
 
