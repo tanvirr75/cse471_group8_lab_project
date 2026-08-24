@@ -1,15 +1,37 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 
 export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
 
-  // In a real app, these would come from an API
+  // In a real app, this would fetch from an API
   useEffect(() => {
-    setTimeout(() => setLoading(false), 500);
+    // Simulate fetching user dashboard data
+    setTimeout(() => {
+      setUserData({
+        name: 'Student', // Fallback name
+        stats: { jobMatches: 0, applications: 0, interviewing: 0, repos: 0, profileStrength: 0 },
+        employability: 0,
+        scoreFactors: [
+          { label: 'Technical skills', score: 0, color: 'bg-blue-500', width: '0%' },
+          { label: 'GitHub activity', score: 0, color: 'bg-blue-500', width: '0%' },
+          { label: 'Project quality', score: 0, color: 'bg-blue-500', width: '0%' },
+          { label: 'Resume quality', score: 0, color: 'bg-blue-500', width: '0%' },
+          { label: 'Certifications', score: 0, color: 'bg-amber-500', width: '0%' },
+          { label: 'Career readiness', score: 0, color: 'bg-blue-500', width: '0%' },
+        ],
+        recommendation: null,
+        activeApplications: []
+      });
+      setLoading(false);
+    }, 500);
   }, []);
+
+  if (loading) {
+    return <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[60vh] text-slate-400">Loading dashboard...</div>;
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 text-white pb-10">
@@ -17,9 +39,9 @@ export default function StudentDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <p className="text-xs font-bold text-blue-500 tracking-widest uppercase mb-1">Student • Career Overview</p>
-          <h1 className="text-3xl font-bold mt-1">Good evening, Naimul</h1>
+          <h1 className="text-3xl font-bold mt-1">Good evening, {userData?.name}</h1>
           <p className="text-slate-300 text-sm mt-2 max-w-xl leading-relaxed">
-            Your employability climbed 6 points this week. Two new roles match you above 85%.
+            Welcome to your career dashboard. Complete onboarding to see personalized insights.
           </p>
         </div>
         <button className="bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
@@ -31,23 +53,23 @@ export default function StudentDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm">
           <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Job Matches ≥80%</h3>
-          <p className="text-3xl font-bold mt-2">14</p>
-          <p className="text-xs text-emerald-400 font-medium mt-1">+3 this week</p>
+          <p className="text-3xl font-bold mt-2">{userData?.stats.jobMatches}</p>
+          <p className="text-xs text-slate-500 font-medium mt-1">Updates weekly</p>
         </div>
         <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm">
           <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Applications</h3>
-          <p className="text-3xl font-bold mt-2">08</p>
-          <p className="text-xs text-slate-400 mt-1">3 interviewing</p>
+          <p className="text-3xl font-bold mt-2">{userData?.stats.applications}</p>
+          <p className="text-xs text-slate-500 mt-1">{userData?.stats.interviewing} interviewing</p>
         </div>
         <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm">
           <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">GitHub Repos</h3>
-          <p className="text-3xl font-bold mt-2">23</p>
-          <p className="text-xs text-emerald-400 font-medium mt-1">6 languages</p>
+          <p className="text-3xl font-bold mt-2">{userData?.stats.repos}</p>
+          <p className="text-xs text-slate-500 font-medium mt-1">Connect to track</p>
         </div>
         <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm">
           <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Profile Strength</h3>
-          <p className="text-3xl font-bold mt-2">92<span className="text-lg text-slate-400 font-normal">%</span></p>
-          <p className="text-xs text-emerald-400 font-medium mt-1">Complete</p>
+          <p className="text-3xl font-bold mt-2">{userData?.stats.profileStrength}<span className="text-lg text-slate-400 font-normal">%</span></p>
+          <p className="text-xs text-slate-500 font-medium mt-1">Incomplete</p>
         </div>
       </div>
 
@@ -56,16 +78,15 @@ export default function StudentDashboard() {
         {/* Employability Score */}
         <div className="md:col-span-2 bg-[#121a2f] p-6 rounded-xl border border-[#1e293b] shadow-sm flex flex-col items-center justify-center">
           <div className="relative w-40 h-40">
-            <div className="w-40 h-40 rounded-full bg-[#0b1120] flex items-center justify-center border-[12px] border-blue-500 shadow-inner">
+            <div className="w-40 h-40 rounded-full bg-[#0b1120] flex items-center justify-center border-[12px] border-slate-700 shadow-inner">
               <div className="text-center mt-2">
-                <div className="text-5xl font-black text-white leading-none">76</div>
+                <div className="text-5xl font-black text-white leading-none">{userData?.employability}</div>
                 <div className="text-[9px] font-bold text-slate-500 tracking-widest mt-1">EMPLOYABILITY</div>
               </div>
             </div>
-            {/* The circular progress would normally use an SVG stroke-dasharray, but we use border styling for the exact mockup representation */}
           </div>
-          <p className="text-emerald-400 text-sm font-bold mt-6">↑ +6 pts since last week</p>
-          <p className="text-slate-400 text-xs mt-1">Strong — top 18% of your cohort</p>
+          <p className="text-slate-500 text-sm font-bold mt-6">No data yet</p>
+          <p className="text-slate-500 text-xs mt-1">Upload resume to calculate</p>
         </div>
 
         {/* What builds your score */}
@@ -75,20 +96,13 @@ export default function StudentDashboard() {
             <span className="text-xs text-slate-500">6 weighted factors</span>
           </div>
           <div className="space-y-4">
-            {[
-              { label: 'Technical skills', score: 84, color: 'bg-blue-500', width: '84%' },
-              { label: 'GitHub activity', score: 78, color: 'bg-blue-500', width: '78%' },
-              { label: 'Project quality', score: 71, color: 'bg-blue-500', width: '71%' },
-              { label: 'Resume quality', score: 88, color: 'bg-blue-500', width: '88%' },
-              { label: 'Certifications', score: 52, color: 'bg-amber-500', width: '52%' },
-              { label: 'Career readiness', score: 69, color: 'bg-blue-500', width: '69%' },
-            ].map((item, idx) => (
+            {userData?.scoreFactors.map((item, idx) => (
               <div key={idx} className="flex items-center gap-4">
                 <span className="w-32 text-sm text-slate-400 shrink-0">{item.label}</span>
                 <div className="flex-1 h-2 bg-[#1e293b] rounded-full overflow-hidden">
                   <div className={`h-full ${item.color} rounded-full`} style={{ width: item.width }}></div>
                 </div>
-                <span className="w-6 text-right text-sm font-bold text-slate-300">{item.score}</span>
+                <span className="w-6 text-right text-sm font-bold text-slate-500">{item.score}</span>
               </div>
             ))}
           </div>
@@ -107,55 +121,56 @@ export default function StudentDashboard() {
               </div>
               <span className="text-[10px] font-bold text-blue-300 bg-blue-900/30 px-2 py-1 rounded border border-blue-800">Gemini</span>
             </div>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              Your GitHub shows consistent <span className="font-bold text-white">backend work in Node.js and MongoDB</span> with clean REST patterns. 
-              You're most aligned with <span className="font-bold text-white">Backend Developer</span> roles at <span className="font-bold text-white">82% readiness</span>. 
-              Closing two gaps — containerization and automated testing — would push you past 90%.
-            </p>
+            {userData?.recommendation ? (
+              <p className="text-sm text-slate-300 leading-relaxed">{userData.recommendation.text}</p>
+            ) : (
+              <div className="py-4 text-center border border-dashed border-[#1e293b] rounded-lg bg-[#0b1120]">
+                <p className="text-slate-400 text-sm">Not enough data for AI recommendations.</p>
+                <p className="text-slate-500 text-xs mt-1">Connect GitHub and upload resume.</p>
+              </div>
+            )}
           </div>
-          <div className="flex gap-8 mt-6">
-            <div>
-              <p className="text-2xl font-bold text-blue-400">82%</p>
-              <p className="text-xs text-slate-400 mt-1">Backend Dev</p>
+          {userData?.recommendation && (
+            <div className="flex gap-8 mt-6">
+              {userData.recommendation.roles.map((role, idx) => (
+                <div key={idx}>
+                  <p className={`text-2xl font-bold ${idx === 0 ? 'text-blue-400' : 'text-slate-300'}`}>{role.percentage}%</p>
+                  <p className="text-xs text-slate-400 mt-1">{role.name}</p>
+                </div>
+              ))}
             </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-300">74%</p>
-              <p className="text-xs text-slate-400 mt-1">Full Stack</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-slate-300">61%</p>
-              <p className="text-xs text-slate-400 mt-1">DevOps</p>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Active Applications */}
         <div className="bg-[#121a2f] p-6 rounded-xl border border-[#1e293b] shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-bold">Active applications</h3>
-            <span className="text-[10px] font-bold text-teal-300 bg-teal-900/30 px-2 py-1 rounded border border-teal-800">8 open</span>
+            <span className="text-[10px] font-bold text-slate-400 bg-[#1e293b] px-2 py-1 rounded border border-[#334155]">{userData?.activeApplications.length} open</span>
           </div>
           <div className="space-y-3">
-            {[
-              { role: 'Backend Intern', company: 'Pathao', time: 'Applied 2 days ago', status: 'Interview', statusColor: 'text-blue-400 bg-blue-900/20 border-blue-800' },
-              { role: 'SWE Intern', company: 'Brain Station 23', time: 'Applied 5 days ago', status: 'In review', statusColor: 'text-amber-400 bg-amber-900/20 border-amber-800' },
-              { role: 'Full Stack', company: 'Sheba.xyz', time: 'Applied 1 week ago', status: 'In review', statusColor: 'text-amber-400 bg-amber-900/20 border-amber-800' },
-            ].map((app, idx) => (
-              <div key={idx} className="flex justify-between items-center p-3 bg-[#0b1120] rounded-xl border border-[#1e293b]">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center border border-[#334155]">
-                    <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+            {userData?.activeApplications.length > 0 ? (
+              userData.activeApplications.map((app, idx) => (
+                <div key={idx} className="flex justify-between items-center p-3 bg-[#0b1120] rounded-xl border border-[#1e293b]">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-[#1e293b] flex items-center justify-center border border-[#334155]">
+                      <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold">{app.role} <span className="text-slate-500 mx-1">•</span> <span className="font-normal text-slate-300">{app.company}</span></h4>
+                      <p className="text-xs text-slate-500 mt-0.5">{app.time}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-bold">{app.role} <span className="text-slate-500 mx-1">•</span> <span className="font-normal text-slate-300">{app.company}</span></h4>
-                    <p className="text-xs text-slate-500 mt-0.5">{app.time}</p>
-                  </div>
+                  <span className={`text-[10px] font-bold px-3 py-1 rounded-full border ${app.statusColor}`}>
+                    {app.status}
+                  </span>
                 </div>
-                <span className={`text-[10px] font-bold px-3 py-1 rounded-full border ${app.statusColor}`}>
-                  {app.status}
-                </span>
+              ))
+            ) : (
+              <div className="py-6 text-center">
+                <p className="text-slate-400 text-sm">You haven't applied to any jobs yet.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

@@ -34,27 +34,27 @@ export default function PortfolioPage() {
 
   if (loading) return <div className="text-white p-6">Loading portfolio...</div>;
 
-  // Dummy data (fallback for design preview)
-  const dummyData = {
-    avatarInitials: "NH",
-    fullName: "Naimul Hasan",
-    title: "Backend Developer",
-    university: "CSE, BRAC University",
-    employabilityScore: 76,
-    links: {
-      github: "github.com/naimul",
-      linkedin: "in/naimul-hasan",
-      website: "naimul.dev"
-    },
-    projects: [
-      { title: "SkillSync API", description: "REST backend for a career platform — Node, Express, MongoDB, JWT.", techStack: ["Node.js", "MongoDB"] },
-      { title: "E-commerce Backend", description: "Scalable API with payment integration and admin dashboard.", techStack: ["Express", "Stripe"] }
-    ],
-    skills: ["JavaScript", "Node.js", "MongoDB", "Express", "REST", "Git"],
-    certifications: ["Meta Backend Developer (Coursera)", "MongoDB University M001"]
-  };
+  if (!portfolio) {
+    return (
+      <div className="max-w-5xl mx-auto w-full text-white flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="bg-[#121a2f] p-8 rounded-2xl border border-[#1e293b] shadow-sm flex flex-col items-center max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-[#1e293b] text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4 shadow-inner">
+            👤
+          </div>
+          <h2 className="text-xl font-bold mb-2">No Portfolio Yet</h2>
+          <p className="text-slate-400 text-sm mb-6">Connect your GitHub and LinkedIn to generate your professional portfolio.</p>
+          <button 
+            onClick={() => router.push('/student/onboarding')}
+            className="bg-blue-600 hover:bg-blue-700 w-full py-3 rounded-xl font-bold text-sm transition text-white shadow-lg shadow-blue-500/20"
+          >
+            Setup Portfolio
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const data = portfolio || dummyData;
+  const data = portfolio;
 
   return (
     <div className="max-w-5xl mx-auto w-full text-white pb-10">
