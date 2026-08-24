@@ -91,15 +91,29 @@ export default function StudentDashboard() {
             <p className="text-slate-500 text-sm">Explore smart job recommendations tailored exactly to your skills and department.</p>
           </Link>
 
-          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 opacity-60 cursor-not-allowed">
-            <div className="w-12 h-12 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-xl flex items-center justify-center text-2xl mb-4">
+          <Link href="/student/portfolio" className="group bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 hover:border-blue-500 dark:hover:border-blue-500 hover:shadow-md transition-all block">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
               💼
             </div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2">My Portfolio (Soon)</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 transition-colors">My Portfolio</h2>
             <p className="text-slate-500 text-sm">Manage your projects, GitHub repositories, and professional certifications.</p>
-          </div>
+          </Link>
 
-        </div>
+          <Link href="/student/resume" className="group bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-md transition-all block">
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+              📄
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors">Resume Analysis</h2>
+            <p className="text-slate-500 text-sm">Check your AI-generated resume score and get feedback to improve it.</p>
+          </Link>
+
+          <Link href="/student/readiness" className="group bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 hover:border-purple-500 dark:hover:border-purple-500 hover:shadow-md transition-all block">
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl flex items-center justify-center text-2xl mb-4 group-hover:scale-110 transition-transform">
+              📈
+            </div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-purple-600 transition-colors">Career Readiness</h2>
+            <p className="text-slate-500 text-sm">Identify skill gaps and generate personalized learning roadmaps.</p>
+          </Link>
       </div>
     </div>
   );

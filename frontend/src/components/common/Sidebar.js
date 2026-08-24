@@ -1,13 +1,13 @@
 // Theme updated to match the approved dark dashboard mockups - the public
 // landing page (app/page.js) has its own separate theme and is not part of this.
 export default function Sidebar() {
-  // Simple data structure for navigation links
   const navItems = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Career Readiness', href: '/readiness' },
+    { name: 'Dashboard', href: '/student/dashboard' },
+    { name: 'Portfolio', href: '/student/portfolio' },
+    { name: 'Resume Analysis', href: '/student/resume' },
+    { name: 'Career Readiness', href: '/student/readiness' },
     { name: 'Job Matches', href: '/jobs' },
     { name: 'Recommendations', href: '/recommendations' },
-    { name: 'Portfolio', href: '/portfolio' },
     { name: 'Applications', href: '/applications' },
   ];
 
