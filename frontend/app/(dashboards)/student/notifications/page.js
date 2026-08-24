@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
@@ -9,7 +9,6 @@ export default function NotificationsPage() {
   // In a real app, this would fetch from an API
   // useEffect(() => { fetchNotifications().then(setNotifications).finally(() => setLoading(false)) }, [])
   // For now, we simulate an empty response after a short delay
-  import { useEffect } from 'react';
   useEffect(() => {
     setTimeout(() => {
       setNotifications([]);
