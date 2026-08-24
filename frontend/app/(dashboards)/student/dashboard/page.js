@@ -114,6 +114,7 @@ export default function StudentDashboard() {
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-purple-600 transition-colors">Career Readiness</h2>
             <p className="text-slate-500 text-sm">Identify skill gaps and generate personalized learning roadmaps.</p>
           </Link>
+        </div>
       </div>
     </div>
   );
