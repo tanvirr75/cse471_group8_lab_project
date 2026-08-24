@@ -3,8 +3,9 @@ import { useState, useEffect } from "react";
 
 export default function ResumeAnalysisPage() {
   const [analysis, setAnalysis] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
+  const fetchAnalysis = () => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
     
@@ -13,18 +14,66 @@ export default function ResumeAnalysisPage() {
     fetch(`/api/resume/${userId}`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Not found");
+        return res.json();
+      })
       .then((data) => {
         if (data && data.analysis) setAnalysis(data.analysis);
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.log("No existing analysis found"));
+  };
+
+  useEffect(() => {
+    fetchAnalysis();
   }, []);
+
+  const handleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("resume", file);
+
+    try {
+      const response = await fetch("/api/resume/upload", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await response.json();
+      if (response.ok && data.data?.analysis) {
+        setAnalysis(data.data.analysis);
+      } else {
+        alert("Upload failed: " + (data.message || "Unknown error"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("An error occurred during upload.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (!analysis) {
     return (
       <div className="text-white p-8 flex flex-col items-center justify-center min-h-[60vh]">
-        <p className="text-slate-400 text-lg">No resume analysis found.</p>
-        <p className="text-slate-500 text-sm mt-2">Please upload a PDF from your portfolio or complete onboarding.</p>
+        <div className="bg-surface-dark p-8 rounded-2xl border border-border-dark shadow-lg flex flex-col items-center max-w-md w-full text-center">
+          <div className="w-16 h-16 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4">
+            📄
+          </div>
+          <h2 className="text-xl font-bold mb-2">No Resume Found</h2>
+          <p className="text-slate-400 text-sm mb-6">Upload your resume in PDF format to get an AI-powered analysis of your skills and experience.</p>
+          
+          <label className={`w-full py-3 rounded-xl font-bold text-sm transition text-center cursor-pointer shadow-lg shadow-blue-500/20 ${isUploading ? 'bg-blue-800 text-slate-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+            {isUploading ? 'Analyzing...' : 'Upload PDF'}
+            <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={isUploading} />
+          </label>
+        </div>
       </div>
     );
   }
@@ -37,9 +86,10 @@ export default function ResumeAnalysisPage() {
           <h1 className="text-3xl font-bold mt-2">Resume Score & Feedback</h1>
           <p className="text-slate-400 text-sm mt-1">SkillSync AI reviewed your uploaded resume against industry standards.</p>
         </div>
-        <button className="bg-surface-dark hover:bg-background-dark px-4 py-2 rounded-xl text-sm transition flex items-center gap-2 border border-border-dark">
-          ⬇️ Re-upload PDF
-        </button>
+        <label className={`px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2 border border-border-dark cursor-pointer ${isUploading ? 'bg-background-dark text-slate-500' : 'bg-surface-dark hover:bg-background-dark'}`}>
+          {isUploading ? '⏳ Uploading...' : '⬇️ Re-upload PDF'}
+          <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={isUploading} />
+        </label>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
