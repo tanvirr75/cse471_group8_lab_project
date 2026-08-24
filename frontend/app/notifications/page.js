@@ -1,11 +1,12 @@
 "use client";
 import { useState, useEffect } from "react";
+import ProtectedRoute from "../../src/components/common/ProtectedRoute";
 
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     if (!token) return;
 
     fetch("http://localhost:5002/api/notifications", {
@@ -39,6 +40,7 @@ export default function NotificationsPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="flex h-screen bg-[#0b1120] text-white overflow-hidden font-sans">
       {/* সাইডবার */}
       <div className="w-64 border-r border-gray-800 p-6 flex flex-col gap-6 hidden md:flex">
@@ -110,5 +112,6 @@ export default function NotificationsPage() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
