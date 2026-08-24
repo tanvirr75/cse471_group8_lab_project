@@ -15,14 +15,18 @@ export default function CareerReadinessPage() {
     setError('');
     setRoadmap(null);
 
+    const userId = localStorage.getItem('userId') || 'student-2';
     const currentSkills = skillsInput.split(',').map(s => s.trim()).filter(Boolean);
 
     try {
-      const response = await fetch('http://localhost:5000/api/readiness/roadmap', {
+      const response = await fetch('/api/readiness/roadmap', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
         body: JSON.stringify({
-          userId: 'student-2',
+          userId,
           targetRole,
           currentSkills
         }),

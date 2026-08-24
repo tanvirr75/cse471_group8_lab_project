@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+// We use an empty string so that the frontend makes relative requests (e.g. /api/auth/login).
+// Next.js (via next.config.mjs) will automatically proxy these requests to http://localhost:5002/api
+const API_URL = "";
 
 const DEV_USER_ID = "64f1a2b3c4d5e6f7a8b9c0d1"; // Kept for backwards compatibility with other features
 
