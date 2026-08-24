@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState("notifications");
@@ -22,18 +23,7 @@ export default function HomePage() {
   useEffect(() => {
     const autoLoginAndLoad = async () => {
       let token = localStorage.getItem("token");
-      if (!token) {
-        const res = await fetch("http://localhost:5002/api/auth/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: "nafir@bracu.ac.bd", password: "123456" })
-        });
-        const data = await res.json();
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-          token = data.token;
-        }
-      }
+      if (!token) return;
 
       // 1. Notifications
       fetch("http://localhost:5002/api/notifications", {
@@ -538,7 +528,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="flex h-screen bg-[#0b1120] text-white font-sans overflow-hidden">
+    <ProtectedRoute>
+      <div className="flex h-screen bg-[#0b1120] text-white font-sans overflow-hidden">
       <div className="w-64 border-r border-gray-800 p-6 flex flex-col gap-6 hidden md:flex">
         <div className="flex items-center gap-2 mb-6"><div className="bg-blue-600 p-1.5 rounded-lg">⚡</div><span className="text-xl font-bold">SkillSync</span></div>
         <div className="space-y-4 text-gray-400 text-sm">
@@ -556,5 +547,6 @@ export default function HomePage() {
         <div className="flex-1 overflow-y-auto p-8">{renderContent()}</div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
