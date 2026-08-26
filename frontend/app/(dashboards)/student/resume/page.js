@@ -6,7 +6,6 @@ export default function ResumeAnalysisPage() {
   const [currentFileName, setCurrentFileName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef(null);
@@ -41,8 +40,13 @@ export default function ResumeAnalysisPage() {
 
   const processUpload = async (file) => {
     if (!file) return;
-    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
-      setErrorMessage("Please upload a valid PDF file.");
+
+    // Strict PDF validation
+    const isPdfExt = file.name.toLowerCase().endsWith(".pdf");
+    const isPdfType = file.type === "application/pdf" || file.type === "";
+
+    if (!isPdfExt) {
+      setErrorMessage(`❌ "${file.name}" is not a PDF! Please upload a valid .pdf file.`);
       return;
     }
 
@@ -70,10 +74,9 @@ export default function ResumeAnalysisPage() {
         setAnalysis(data.data.analysis);
         setCurrentFileName(file.name);
         setUploadSuccess(true);
-        setShowUploadModal(false);
         setTimeout(() => setUploadSuccess(false), 4000);
       } else {
-        setErrorMessage("Upload failed: " + (data.message || "Unknown error"));
+        setErrorMessage(data.message || "Upload failed. Please make sure the file is a valid PDF.");
       }
     } catch (err) {
       console.error(err);
@@ -88,7 +91,6 @@ export default function ResumeAnalysisPage() {
     if (file) {
       processUpload(file);
     }
-    // Clear input so selecting the same file triggers again
     e.target.value = "";
   };
 
@@ -109,6 +111,14 @@ export default function ResumeAnalysisPage() {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       processUpload(e.dataTransfer.files[0]);
     }
+  };
+
+  // Helper color functions based on score
+  const getScoreColor = (score) => {
+    if (score >= 90) return { stroke: "#10b981", text: "text-emerald-400", border: "border-emerald-500", label: "Excellent — Ready to Apply!" };
+    if (score >= 80) return { stroke: "#3b82f6", text: "text-blue-400", border: "border-blue-500", label: "Good — 2-3 quick fixes to reach 90+" };
+    if (score >= 70) return { stroke: "#f59e0b", text: "text-amber-400", border: "border-amber-500", label: "Average — Needs keyword & metric optimization" };
+    return { stroke: "#ef4444", text: "text-red-400", border: "border-red-500", label: "Needs Improvement — Missing essential sections" };
   };
 
   // Fallback initial view if no resume uploaded yet
@@ -138,7 +148,7 @@ export default function ResumeAnalysisPage() {
           </p>
 
           {errorMessage && (
-            <p className="text-red-400 text-xs mb-4 bg-red-900/20 border border-red-800 px-3 py-2 rounded-lg w-full">
+            <p className="text-red-400 text-xs mb-4 bg-red-900/30 border border-red-800 px-3 py-2 rounded-lg w-full font-medium">
               {errorMessage}
             </p>
           )}
@@ -156,14 +166,20 @@ export default function ResumeAnalysisPage() {
     );
   }
 
-  // Calculate circumference for dynamic circle indicator
+  const scoreTheme = getScoreColor(analysis.score || 78);
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (analysis.score / 100) * circumference;
+  const strokeDashoffset = circumference - ((analysis.score || 78) / 100) * circumference;
 
   return (
-    <div className="max-w-5xl mx-auto w-full text-white pb-10 relative">
-      {/* Hidden file input with HTML5 label association (100% reliable on Safari/macOS) */}
+    <div 
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+      className="max-w-5xl mx-auto w-full text-white pb-10 relative"
+    >
+      {/* Hidden file input with HTML5 label association */}
       <input
         id="resume-reupload-input"
         ref={fileInputRef}
@@ -173,6 +189,16 @@ export default function ResumeAnalysisPage() {
         onChange={handleFileInputChange}
       />
 
+      {/* Drag & drop overlay indicator */}
+      {dragActive && (
+        <div className="absolute inset-0 bg-blue-600/20 border-2 border-dashed border-blue-400 rounded-3xl z-50 flex items-center justify-center backdrop-blur-sm pointer-events-none">
+          <div className="bg-[#0b1120] border border-blue-500 px-8 py-6 rounded-2xl shadow-2xl text-center">
+            <span className="text-4xl">📄</span>
+            <p className="text-lg font-bold text-white mt-2">Drop your PDF here to analyze</p>
+          </div>
+        </div>
+      )}
+
       {/* Header section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
@@ -181,7 +207,9 @@ export default function ResumeAnalysisPage() {
           <p className="text-slate-400 text-sm mt-1">
             Gemini reviewed your uploaded resume against industry standards for backend roles.
             {currentFileName && (
-              <span className="ml-2 text-blue-400 font-medium">({currentFileName})</span>
+              <span className="ml-2 text-blue-400 font-semibold bg-blue-950/40 border border-blue-800/40 px-2.5 py-0.5 rounded-md text-xs">
+                {currentFileName}
+              </span>
             )}
           </p>
         </div>
@@ -193,7 +221,7 @@ export default function ResumeAnalysisPage() {
             </span>
           )}
 
-          {/* Re-upload Button using label with htmlFor + onClick fallback */}
+          {/* Re-upload Button */}
           <label
             htmlFor="resume-reupload-input"
             onClick={() => fileInputRef.current?.click()}
@@ -209,7 +237,7 @@ export default function ResumeAnalysisPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Analyzing...
+                Analyzing PDF...
               </>
             ) : (
               <>
@@ -223,10 +251,14 @@ export default function ResumeAnalysisPage() {
         </div>
       </div>
 
+      {/* Error notification banner */}
       {errorMessage && (
-        <div className="mb-6 bg-red-900/30 border border-red-800 text-red-300 text-sm px-4 py-3 rounded-xl flex items-center justify-between">
-          <span>{errorMessage}</span>
-          <button onClick={() => setErrorMessage("")} className="text-red-400 hover:text-white font-bold ml-4">✕</button>
+        <div className="mb-6 bg-red-950/60 border border-red-800 text-red-300 text-sm px-4 py-3 rounded-xl flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+          <button onClick={() => setErrorMessage("")} className="text-red-400 hover:text-white font-bold ml-4 text-lg">✕</button>
         </div>
       )}
 
@@ -316,7 +348,7 @@ export default function ResumeAnalysisPage() {
                 cx="80"
                 cy="80"
                 r={radius}
-                stroke="#3b82f6"
+                stroke={scoreTheme.stroke}
                 strokeWidth="14"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
@@ -331,9 +363,7 @@ export default function ResumeAnalysisPage() {
             </div>
           </div>
           <p className="text-slate-400 text-sm text-center font-medium">
-            {analysis.score >= 90
-              ? "Excellent — You are ready to apply!"
-              : `Good — Score ${analysis.score}/100 (${90 - analysis.score > 0 ? 90 - analysis.score + " pts to reach 90+" : "Ready"})`}
+            {scoreTheme.label}
           </p>
         </div>
 
