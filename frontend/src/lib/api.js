@@ -152,3 +152,12 @@ export async function getRecommendations(params = {}) {
     throw new Error(data.message || "Failed to load recommendations");
   return data;
 }
+
+export async function getTechNews() {
+  const res = await fetch(`${API_URL}/api/news`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load news");
+  return data;
+}
