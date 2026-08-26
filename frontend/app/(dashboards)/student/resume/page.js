@@ -5,15 +5,25 @@ export default function ResumeAnalysisPage() {
   const [analysis, setAnalysis] = useState(null);
   const [currentFileName, setCurrentFileName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef(null);
 
+  const getToken = () => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("token") || "";
+  };
+
+  const getUserId = () => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("userId") || "";
+  };
+
   const fetchAnalysis = () => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-    
+    const token = getToken();
+    const userId = getUserId();
     if (!token || !userId) return;
 
     fetch(`/api/resume/${userId}`, {
@@ -41,22 +51,23 @@ export default function ResumeAnalysisPage() {
   const processUpload = async (file) => {
     if (!file) return;
 
+    console.log("Processing upload for file:", file.name, "Type:", file.type, "Size:", file.size);
+
     // Strict PDF validation
     const isPdfExt = file.name.toLowerCase().endsWith(".pdf");
-    const isPdfType = file.type === "application/pdf" || file.type === "";
-
     if (!isPdfExt) {
       setErrorMessage(`❌ "${file.name}" is not a PDF! Please upload a valid .pdf file.`);
       return;
     }
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+    const token = getToken();
     if (!token) {
       setErrorMessage("Authentication error. Please log in again.");
       return;
     }
 
     setIsUploading(true);
+    setUploadProgressText(`Analyzing ${file.name} with Gemini AI...`);
     setErrorMessage("");
     setUploadSuccess(false);
 
@@ -70,19 +81,22 @@ export default function ResumeAnalysisPage() {
         body: formData,
       });
       const data = await response.json();
+      console.log("Upload API response:", data);
+
       if (response.ok && data.data?.analysis) {
         setAnalysis(data.data.analysis);
         setCurrentFileName(file.name);
         setUploadSuccess(true);
-        setTimeout(() => setUploadSuccess(false), 4000);
+        setTimeout(() => setUploadSuccess(false), 5000);
       } else {
         setErrorMessage(data.message || "Upload failed. Please make sure the file is a valid PDF.");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Upload fetch error:", err);
       setErrorMessage("An error occurred during upload. Please check your connection.");
     } finally {
       setIsUploading(false);
+      setUploadProgressText("");
     }
   };
 
@@ -113,12 +127,11 @@ export default function ResumeAnalysisPage() {
     }
   };
 
-  // Helper color functions based on score
   const getScoreColor = (score) => {
     if (score >= 90) return { stroke: "#10b981", text: "text-emerald-400", border: "border-emerald-500", label: "Excellent — Ready to Apply!" };
     if (score >= 80) return { stroke: "#3b82f6", text: "text-blue-400", border: "border-blue-500", label: "Good — 2-3 quick fixes to reach 90+" };
     if (score >= 70) return { stroke: "#f59e0b", text: "text-amber-400", border: "border-amber-500", label: "Average — Needs keyword & metric optimization" };
-    return { stroke: "#ef4444", text: "text-red-400", border: "border-red-500", label: "Needs Improvement — Missing essential sections" };
+    return { stroke: "#ef4444", text: "text-red-400", border: "border-red-500", label: "⚠️ Non-Resume Document / Needs Structure" };
   };
 
   // Fallback initial view if no resume uploaded yet
@@ -126,10 +139,10 @@ export default function ResumeAnalysisPage() {
     return (
       <div className="text-white p-8 flex flex-col items-center justify-center min-h-[60vh]">
         <input
-          id="initial-resume-input"
+          ref={fileInputRef}
           type="file"
-          accept="application/pdf,.pdf"
-          style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", pointerEvents: "none" }}
+          accept=".pdf,application/pdf"
+          className="hidden"
           onChange={handleFileInputChange}
         />
         <div 
@@ -153,23 +166,26 @@ export default function ResumeAnalysisPage() {
             </p>
           )}
           
-          <label
-            htmlFor="initial-resume-input"
-            className={`w-full py-3 rounded-xl font-bold text-sm transition text-center cursor-pointer shadow-lg shadow-blue-500/20 block ${
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className={`w-full py-3 rounded-xl font-bold text-sm transition text-center shadow-lg shadow-blue-500/20 block ${
               isUploading ? "bg-blue-800 text-slate-300 pointer-events-none" : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
             {isUploading ? "Analyzing..." : "Upload PDF"}
-          </label>
+          </button>
         </div>
       </div>
     );
   }
 
-  const scoreTheme = getScoreColor(analysis.score || 78);
+  const scoreVal = analysis.score || 78;
+  const scoreTheme = getScoreColor(scoreVal);
   const radius = 70;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - ((analysis.score || 78) / 100) * circumference;
+  const strokeDashoffset = circumference - (Math.min(100, Math.max(0, scoreVal)) / 100) * circumference;
 
   return (
     <div 
@@ -179,19 +195,29 @@ export default function ResumeAnalysisPage() {
       onDrop={handleDrop}
       className="max-w-5xl mx-auto w-full text-white pb-10 relative"
     >
-      {/* Hidden file input with HTML5 label association */}
+      {/* Hidden standard file input triggered programmatically */}
       <input
-        id="resume-reupload-input"
         ref={fileInputRef}
         type="file"
-        accept="application/pdf,.pdf"
-        style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", pointerEvents: "none" }}
+        accept=".pdf,application/pdf"
+        className="hidden"
         onChange={handleFileInputChange}
       />
 
+      {/* Uploading progress modal */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121a2f] border border-blue-500/50 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+            <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
+            <h3 className="text-lg font-bold text-white mb-2">Analyzing Resume</h3>
+            <p className="text-slate-400 text-sm">{uploadProgressText || "Gemini AI is reviewing your document..."}</p>
+          </div>
+        </div>
+      )}
+
       {/* Drag & drop overlay indicator */}
       {dragActive && (
-        <div className="absolute inset-0 bg-blue-600/20 border-2 border-dashed border-blue-400 rounded-3xl z-50 flex items-center justify-center backdrop-blur-sm pointer-events-none">
+        <div className="absolute inset-0 bg-blue-600/20 border-2 border-dashed border-blue-400 rounded-3xl z-40 flex items-center justify-center backdrop-blur-sm pointer-events-none">
           <div className="bg-[#0b1120] border border-blue-500 px-8 py-6 rounded-2xl shadow-2xl text-center">
             <span className="text-4xl">📄</span>
             <p className="text-lg font-bold text-white mt-2">Drop your PDF here to analyze</p>
@@ -204,11 +230,11 @@ export default function ResumeAnalysisPage() {
         <div>
           <p className="text-xs font-bold text-blue-500 tracking-widest uppercase">AI • Resume Analysis</p>
           <h1 className="text-3xl font-bold mt-2">Resume analysis</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            Gemini reviewed your uploaded resume against industry standards for backend roles.
+          <p className="text-slate-400 text-sm mt-1 flex items-center gap-2 flex-wrap">
+            <span>Gemini reviewed your uploaded resume against industry standards for backend roles.</span>
             {currentFileName && (
-              <span className="ml-2 text-blue-400 font-semibold bg-blue-950/40 border border-blue-800/40 px-2.5 py-0.5 rounded-md text-xs">
-                {currentFileName}
+              <span className="text-blue-400 font-semibold bg-blue-950/40 border border-blue-800/40 px-2.5 py-0.5 rounded-md text-xs">
+                📄 {currentFileName}
               </span>
             )}
           </p>
@@ -222,32 +248,22 @@ export default function ResumeAnalysisPage() {
           )}
 
           {/* Re-upload Button */}
-          <label
-            htmlFor="resume-reupload-input"
+          <button
+            type="button"
+            id="reupload-resume-btn"
             onClick={() => fileInputRef.current?.click()}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-[#334155] shadow-sm cursor-pointer select-none ${
+            disabled={isUploading}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-[#334155] shadow-sm cursor-pointer select-none active:scale-95 ${
               isUploading
-                ? "bg-[#0b1120] text-slate-500 pointer-events-none"
-                : "bg-[#121a2f] hover:bg-[#1e293b] text-white active:scale-95"
+                ? "bg-[#0b1120] text-slate-500 cursor-not-allowed"
+                : "bg-[#121a2f] hover:bg-[#1e293b] text-white"
             }`}
           >
-            {isUploading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Analyzing PDF...
-              </>
-            ) : (
-              <>
-                <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                </svg>
-                Re-upload PDF
-              </>
-            )}
-          </label>
+            <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Re-upload PDF
+          </button>
         </div>
       </div>
 
@@ -354,11 +370,11 @@ export default function ResumeAnalysisPage() {
                 strokeDashoffset={strokeDashoffset}
                 strokeLinecap="round"
                 fill="transparent"
-                className="transition-all duration-1000 ease-out"
+                className="transition-all duration-700 ease-out"
               />
             </svg>
             <div className="absolute text-center">
-              <div className="text-5xl font-black text-white">{analysis.score}</div>
+              <div className="text-5xl font-black text-white">{scoreVal}</div>
               <div className="text-[10px] font-bold text-slate-500 tracking-widest mt-2 uppercase">Resume Score</div>
             </div>
           </div>
