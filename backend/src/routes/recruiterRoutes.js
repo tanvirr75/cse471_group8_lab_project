@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { toggleShortlist, getShortlistedCandidates } = require('../controllers/recruiterController');
-const { protect, authorizeRoles } = require('../middleware/authMiddleware');
+const { protect, authorizeRoles } = require('../middlewares/authMiddleware');
 
 // All routes here are strictly for recruiters
 router.use(protect);

@@ -57,7 +57,7 @@ export default function Sidebar() {
       </div>
 
       <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-8">
-        // Menu Section
+        {/* Menu Section */}
         <div>
           <p className="px-3 text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">Menu</p>
           <nav className="flex flex-col gap-1">
