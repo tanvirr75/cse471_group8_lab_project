@@ -23,13 +23,7 @@ const PortfolioSchema = new mongoose.Schema(
       },
     ],
     skills: [String],
-    certifications: [
-      {
-        name: { type: String },
-        issuer: { type: String },
-        year: { type: Number },
-      },
-    ],
+    certifications: [mongoose.Schema.Types.Mixed],
   },
   { timestamps: true }
 );

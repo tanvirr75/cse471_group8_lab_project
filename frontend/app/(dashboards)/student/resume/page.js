@@ -1,111 +1,297 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export default function ResumeAnalysisPage() {
   const [analysis, setAnalysis] = useState(null);
+  const [currentFileName, setCurrentFileName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState("");
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const fileInputRef = useRef(null);
+
+  const getToken = () => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("token") || "";
+  };
+
+  const getUserId = () => {
+    if (typeof window === "undefined") return null;
+    return localStorage.getItem("userId") || "";
+  };
 
   const fetchAnalysis = () => {
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-    
+    const token = getToken();
+    const userId = getUserId();
     if (!token || !userId) return;
 
     fetch(`/api/resume/${userId}`, {
-      headers: { "Authorization": `Bearer ${token}` }
+      headers: { Authorization: `Bearer ${token}` }
     })
       .then((res) => {
         if (!res.ok) throw new Error("Not found");
         return res.json();
       })
       .then((data) => {
-        if (data && data.analysis) setAnalysis(data.analysis);
+        if (data && data.analysis) {
+          setAnalysis(data.analysis);
+          if (data.fileUrl && data.fileUrl !== "dummy_url.pdf") {
+            setCurrentFileName(data.fileUrl);
+          }
+        }
       })
-      .catch((err) => console.log("No existing analysis found"));
+      .catch(() => console.log("No existing analysis found"));
   };
 
   useEffect(() => {
     fetchAnalysis();
   }, []);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
+  const processUpload = async (file) => {
     if (!file) return;
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    console.log("Processing upload for file:", file.name, "Type:", file.type, "Size:", file.size);
+
+    // Strict PDF validation
+    const isPdfExt = file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdfExt) {
+      setErrorMessage(`❌ "${file.name}" is not a PDF! Please upload a valid .pdf file.`);
+      return;
+    }
+
+    const token = getToken();
+    if (!token) {
+      setErrorMessage("Authentication error. Please log in again.");
+      return;
+    }
 
     setIsUploading(true);
+    setUploadProgressText(`Analyzing ${file.name} with Gemini AI...`);
+    setErrorMessage("");
+    setUploadSuccess(false);
+
     const formData = new FormData();
     formData.append("resume", file);
 
     try {
       const response = await fetch("/api/resume/upload", {
         method: "POST",
-        headers: { "Authorization": `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
       const data = await response.json();
+      console.log("Upload API response:", data);
+
       if (response.ok && data.data?.analysis) {
         setAnalysis(data.data.analysis);
+        setCurrentFileName(file.name);
+        setUploadSuccess(true);
+        setTimeout(() => setUploadSuccess(false), 5000);
       } else {
-        alert("Upload failed: " + (data.message || "Unknown error"));
+        setErrorMessage(data.message || "Upload failed. Please make sure the file is a valid PDF.");
       }
     } catch (err) {
-      console.error(err);
-      alert("An error occurred during upload.");
+      console.error("Upload fetch error:", err);
+      setErrorMessage("An error occurred during upload. Please check your connection.");
     } finally {
       setIsUploading(false);
+      setUploadProgressText("");
     }
   };
 
+  const handleFileInputChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processUpload(file);
+    }
+    e.target.value = "";
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 90) return { stroke: "#10b981", text: "text-emerald-400", border: "border-emerald-500", label: "Excellent — Ready to Apply!" };
+    if (score >= 80) return { stroke: "#3b82f6", text: "text-blue-400", border: "border-blue-500", label: "Good — 2-3 quick fixes to reach 90+" };
+    if (score >= 70) return { stroke: "#f59e0b", text: "text-amber-400", border: "border-amber-500", label: "Average — Needs keyword & metric optimization" };
+    return { stroke: "#ef4444", text: "text-red-400", border: "border-red-500", label: "⚠️ Non-Resume Document / Needs Structure" };
+  };
+
+  // Fallback initial view if no resume uploaded yet
   if (!analysis) {
     return (
       <div className="text-white p-8 flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="bg-[#121a2f] p-8 rounded-2xl border border-[#1e293b] shadow-sm flex flex-col items-center max-w-md w-full text-center">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pdf,application/pdf"
+          className="hidden"
+          onChange={handleFileInputChange}
+        />
+        <div 
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          className={`bg-[#121a2f] p-8 rounded-2xl border ${dragActive ? 'border-blue-500 bg-blue-500/10' : 'border-[#1e293b]'} shadow-sm flex flex-col items-center max-w-md w-full text-center transition`}
+        >
           <div className="w-16 h-16 bg-[#1e293b] text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4 shadow-inner">
             📄
           </div>
           <h2 className="text-xl font-bold mb-2">No Resume Found</h2>
-          <p className="text-slate-400 text-sm mb-6">Upload your resume in PDF format to get an AI-powered analysis of your skills and experience.</p>
+          <p className="text-slate-400 text-sm mb-6">
+            Upload your resume in PDF format (or drag & drop here) to get an AI-powered analysis.
+          </p>
+
+          {errorMessage && (
+            <p className="text-red-400 text-xs mb-4 bg-red-900/30 border border-red-800 px-3 py-2 rounded-lg w-full font-medium">
+              {errorMessage}
+            </p>
+          )}
           
-          <label className={`w-full py-3 rounded-xl font-bold text-sm transition text-center cursor-pointer shadow-lg shadow-blue-500/20 ${isUploading ? 'bg-blue-800 text-slate-300' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
-            {isUploading ? 'Analyzing...' : 'Upload PDF'}
-            <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={isUploading} />
-          </label>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className={`w-full py-3 rounded-xl font-bold text-sm transition text-center shadow-lg shadow-blue-500/20 block ${
+              isUploading ? "bg-blue-800 text-slate-300 pointer-events-none" : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            {isUploading ? "Analyzing..." : "Upload PDF"}
+          </button>
         </div>
       </div>
     );
   }
 
+  const scoreVal = analysis.score || 78;
+  const scoreTheme = getScoreColor(scoreVal);
+  const radius = 70;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (Math.min(100, Math.max(0, scoreVal)) / 100) * circumference;
+
   return (
-    <div className="max-w-5xl mx-auto w-full text-white pb-10">
-      <div className="flex justify-between items-center mb-8">
+    <div 
+      onDragEnter={handleDrag}
+      onDragLeave={handleDrag}
+      onDragOver={handleDrag}
+      onDrop={handleDrop}
+      className="max-w-5xl mx-auto w-full text-white pb-10 relative"
+    >
+      {/* Hidden standard file input triggered programmatically */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
+
+      {/* Uploading progress modal */}
+      {isUploading && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#121a2f] border border-blue-500/50 rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl flex flex-col items-center">
+            <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4" />
+            <h3 className="text-lg font-bold text-white mb-2">Analyzing Resume</h3>
+            <p className="text-slate-400 text-sm">{uploadProgressText || "Gemini AI is reviewing your document..."}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Drag & drop overlay indicator */}
+      {dragActive && (
+        <div className="absolute inset-0 bg-blue-600/20 border-2 border-dashed border-blue-400 rounded-3xl z-40 flex items-center justify-center backdrop-blur-sm pointer-events-none">
+          <div className="bg-[#0b1120] border border-blue-500 px-8 py-6 rounded-2xl shadow-2xl text-center">
+            <span className="text-4xl">📄</span>
+            <p className="text-lg font-bold text-white mt-2">Drop your PDF here to analyze</p>
+          </div>
+        </div>
+      )}
+
+      {/* Header section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <p className="text-xs font-bold text-blue-500 tracking-widest uppercase">AI • Resume Analysis</p>
           <h1 className="text-3xl font-bold mt-2">Resume analysis</h1>
-          <p className="text-slate-400 text-sm mt-2">Gemini reviewed your uploaded resume against industry standards for backend roles.</p>
+          <p className="text-slate-400 text-sm mt-1 flex items-center gap-2 flex-wrap">
+            <span>Gemini reviewed your uploaded resume against industry standards for backend roles.</span>
+            {currentFileName && (
+              <span className="text-blue-400 font-semibold bg-blue-950/40 border border-blue-800/40 px-2.5 py-0.5 rounded-md text-xs">
+                📄 {currentFileName}
+              </span>
+            )}
+          </p>
         </div>
-        <label className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-[#334155] cursor-pointer shadow-sm ${isUploading ? 'bg-[#0b1120] text-slate-500' : 'bg-[#121a2f] hover:bg-[#1e293b]'}`}>
-          {isUploading ? '⏳ Uploading...' : '⬇️ Re-upload PDF'}
-          <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={isUploading} />
-        </label>
+
+        <div className="flex items-center gap-3">
+          {uploadSuccess && (
+            <span className="text-emerald-400 text-xs font-bold flex items-center gap-1 bg-emerald-900/20 border border-emerald-800/40 px-3 py-1.5 rounded-lg animate-pulse">
+              ✓ Analysis Updated!
+            </span>
+          )}
+
+          {/* Re-upload Button */}
+          <button
+            type="button"
+            id="reupload-resume-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-[#334155] shadow-sm cursor-pointer select-none active:scale-95 ${
+              isUploading
+                ? "bg-[#0b1120] text-slate-500 cursor-not-allowed"
+                : "bg-[#121a2f] hover:bg-[#1e293b] text-white"
+            }`}
+          >
+            <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Re-upload PDF
+          </button>
+        </div>
       </div>
+
+      {/* Error notification banner */}
+      {errorMessage && (
+        <div className="mb-6 bg-red-950/60 border border-red-800 text-red-300 text-sm px-4 py-3 rounded-xl flex items-center justify-between shadow-lg">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span className="font-medium">{errorMessage}</span>
+          </div>
+          <button onClick={() => setErrorMessage("")} className="text-red-400 hover:text-white font-bold ml-4 text-lg">✕</button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Feedback Sections (Left Column, span 3) */}
         <div className="lg:col-span-3 bg-[#121a2f] p-6 rounded-2xl border border-[#1e293b] shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-base font-bold text-white">Feedback by section</h3>
-            <span className="text-xs text-slate-500 font-medium">{analysis.feedback.length} areas reviewed</span>
+            <span className="text-xs text-slate-500 font-medium">
+              {analysis.feedback ? analysis.feedback.length : 0} areas reviewed
+            </span>
           </div>
           <div className="space-y-4">
-            {analysis.feedback.map((item, idx) => {
+            {analysis.feedback?.map((item, idx) => {
               const isImprove = item.includes("Improve");
               const isAdd = item.includes("Add");
-              const isStrong = !isImprove && !isAdd;
-              
-              // Extract the bold part vs description if formatted as "Title: Description"
+
               const parts = item.split(":");
               const title = parts[0] || item;
               const desc = parts[1] || "";
@@ -113,17 +299,27 @@ export default function ResumeAnalysisPage() {
               return (
                 <div key={idx} className="flex items-start gap-4 p-1">
                   {/* Icon */}
-                  <div className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center border ${
-                    isImprove ? "border-amber-500/50 text-amber-500" :
-                    isAdd ? "border-red-500/50 text-red-500 bg-red-500/10" :
-                    "border-emerald-500/50 text-emerald-500 bg-emerald-500/10"
-                  }`}>
+                  <div
+                    className={`mt-0.5 shrink-0 w-5 h-5 rounded flex items-center justify-center border ${
+                      isImprove
+                        ? "border-amber-500/50 text-amber-500 bg-amber-500/10"
+                        : isAdd
+                        ? "border-red-500/50 text-red-500 bg-red-500/10"
+                        : "border-emerald-500/50 text-emerald-500 bg-emerald-500/10"
+                    }`}
+                  >
                     {isImprove ? (
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
                     ) : isAdd ? (
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
                     ) : (
-                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
                     )}
                   </div>
                   {/* Content */}
@@ -132,11 +328,15 @@ export default function ResumeAnalysisPage() {
                     {desc && <p className="text-xs text-slate-400 mt-1 leading-relaxed">{desc}</p>}
                   </div>
                   {/* Badge */}
-                  <div className={`text-[10px] font-bold px-3 py-1 rounded-full border shrink-0 ${
-                    isImprove ? "bg-amber-900/10 text-amber-500 border-amber-900/50" : 
-                    isAdd ? "bg-red-900/10 text-red-500 border-red-900/50" : 
-                    "bg-emerald-900/10 text-emerald-500 border-emerald-900/50"
-                  }`}>
+                  <div
+                    className={`text-[10px] font-bold px-3 py-1 rounded-full border shrink-0 ${
+                      isImprove
+                        ? "bg-amber-900/10 text-amber-500 border-amber-900/50"
+                        : isAdd
+                        ? "bg-red-900/10 text-red-500 border-red-900/50"
+                        : "bg-emerald-900/10 text-emerald-500 border-emerald-900/50"
+                    }`}
+                  >
                     {isImprove ? "Improve" : isAdd ? "Add" : "Strong"}
                   </div>
                 </div>
@@ -147,50 +347,69 @@ export default function ResumeAnalysisPage() {
 
         {/* Score (Right Column, span 2) */}
         <div className="lg:col-span-2 bg-[#121a2f] p-8 rounded-2xl border border-[#1e293b] shadow-sm flex flex-col items-center justify-center">
-          <div className="relative w-48 h-48 mb-8">
-            {/* The circular progress matching the Figma design */}
-            <div className="w-48 h-48 rounded-full bg-[#0b1120] flex items-center justify-center border-[16px] border-[#1e293b] shadow-inner relative">
-              {/* Pseudo-element for the progress arc - we'll simulate it with a colored border for now */}
-              <div className="absolute inset-[-16px] rounded-full border-[16px] border-blue-500/0 border-t-blue-500 border-r-blue-500 border-b-blue-500 transform -rotate-45" style={{ clipPath: 'polygon(50% 50%, 100% 0, 100% 100%, 0 100%, 0 50%)' }}></div>
-              <div className="text-center z-10 relative">
-                <div className="text-6xl font-black text-white">{analysis.score}</div>
-                <div className="text-[10px] font-bold text-slate-500 tracking-widest mt-2 uppercase">Resume Score</div>
-              </div>
+          <div className="relative w-48 h-48 mb-8 flex items-center justify-center">
+            {/* SVG Circular Progress Meter */}
+            <svg className="w-48 h-48 transform -rotate-90" viewBox="0 0 160 160">
+              {/* Background Ring */}
+              <circle
+                cx="80"
+                cy="80"
+                r={radius}
+                stroke="#1e293b"
+                strokeWidth="14"
+                fill="transparent"
+              />
+              {/* Active Progress Ring */}
+              <circle
+                cx="80"
+                cy="80"
+                r={radius}
+                stroke={scoreTheme.stroke}
+                strokeWidth="14"
+                strokeDasharray={circumference}
+                strokeDashoffset={strokeDashoffset}
+                strokeLinecap="round"
+                fill="transparent"
+                className="transition-all duration-700 ease-out"
+              />
+            </svg>
+            <div className="absolute text-center">
+              <div className="text-5xl font-black text-white">{scoreVal}</div>
+              <div className="text-[10px] font-bold text-slate-500 tracking-widest mt-2 uppercase">Resume Score</div>
             </div>
           </div>
           <p className="text-slate-400 text-sm text-center font-medium">
-            {analysis.score >= 90 ? "Excellent — You are ready to apply!" : "Good — 3 quick fixes to reach 90+"}
+            {scoreTheme.label}
           </p>
         </div>
 
         {/* Top Priority Fixes (Full width bottom) */}
         <div className="lg:col-span-5 bg-[#121a2f] p-6 rounded-2xl border border-blue-900/30 shadow-sm relative overflow-hidden">
-          {/* Subtle blue glow top line */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600/0 via-blue-500 to-blue-600/0 opacity-50"></div>
           
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="bg-blue-600 rounded-lg p-1.5 shadow-sm shadow-blue-500/20">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
               </div>
               <h3 className="text-base font-bold text-white">Top priority fixes</h3>
             </div>
             <span className="text-[10px] font-bold text-blue-300 bg-blue-900/30 px-2 py-1 rounded border border-blue-800">Gemini</span>
           </div>
           
-          <div className="text-sm text-slate-300 leading-relaxed pt-2">
-            {analysis.topFixes.map((fix, idx) => {
-              // Extract the bold title (usually up to the first dash or period)
+          <div className="text-sm text-slate-300 leading-relaxed pt-2 space-y-2">
+            {analysis.topFixes?.map((fix, idx) => {
               const parts = fix.split("—");
               const boldPart = parts[0];
               const restPart = parts.slice(1).join("—");
               
               return (
-                <span key={idx}>
+                <div key={idx}>
                   <strong className="text-white font-bold">{boldPart}</strong>
                   {restPart ? ` — ${restPart}` : ""}
-                  {idx < analysis.topFixes.length - 1 ? " " : ""}
-                </span>
+                </div>
               );
             })}
           </div>
