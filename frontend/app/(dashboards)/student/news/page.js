@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import api from '@/lib/api';
+import { getTechNews } from '@/lib/api';
 
 export default function CareerHubPage() {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs' or 'trends'
@@ -17,10 +17,10 @@ export default function CareerHubPage() {
   const fetchCareerData = async () => {
     try {
       setLoading(true);
-      // We kept the api.getTechNews route name to avoid breaking the proxy, but it now returns both
-      const response = await api.getTechNews();
-      setJobs(response.data.jobs || []);
-      setTrends(response.data.trends || []);
+      // We kept the getTechNews route name to avoid breaking the proxy, but it now returns both
+      const response = await getTechNews();
+      setJobs(response.jobs || []);
+      setTrends(response.trends || []);
       setError(null);
     } catch (err) {
       console.error('Error fetching career data:', err);
