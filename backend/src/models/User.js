@@ -49,6 +49,9 @@ const userSchema = new mongoose.Schema(
     linkedinUsername: { type: String },
     companyName: { type: String },
     universityName: { type: String },
+
+    // Feature 13: Recruiter Shortlisting
+    shortlistedCandidates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true,

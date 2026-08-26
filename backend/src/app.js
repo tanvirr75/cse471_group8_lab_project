@@ -22,6 +22,7 @@ const roadmapRoutes = require('./routes/RoadmapRoutes');
 const universityRoutes = require('./routes/universityRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const newsRoutes = require('./routes/newsRoutes');
+const recruiterRoutes = require('./routes/recruiterRoutes');
 
 // App Routes
 app.use('/api/auth', authRoutes);
@@ -37,6 +38,7 @@ app.use('/api/readiness', roadmapRoutes);
 app.use('/api/university', universityRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/recruiters', recruiterRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
