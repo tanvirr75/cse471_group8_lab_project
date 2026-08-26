@@ -21,6 +21,7 @@ const integrationsRoutes = require('./routes/integrations');
 const roadmapRoutes = require('./routes/RoadmapRoutes');
 const universityRoutes = require('./routes/universityRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
+const newsRoutes = require('./routes/newsRoutes');
 
 // App Routes
 app.use('/api/auth', authRoutes);
@@ -35,6 +36,7 @@ app.use('/api/integrations', integrationsRoutes);
 app.use('/api/readiness', roadmapRoutes);
 app.use('/api/university', universityRoutes);
 app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/news', newsRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
