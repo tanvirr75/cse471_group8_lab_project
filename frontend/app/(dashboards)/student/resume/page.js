@@ -6,6 +6,9 @@ export default function ResumeAnalysisPage() {
   const [currentFileName, setCurrentFileName] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const fileInputRef = useRef(null);
 
   const fetchAnalysis = () => {
@@ -36,17 +39,21 @@ export default function ResumeAnalysisPage() {
     fetchAnalysis();
   }, []);
 
-  const handleUpload = async (e) => {
-    const file = e.target.files?.[0];
+  const processUpload = async (file) => {
     if (!file) return;
-
-    // Reset input value immediately so user can re-select any file
-    e.target.value = "";
+    if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+      setErrorMessage("Please upload a valid PDF file.");
+      return;
+    }
 
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    if (!token) return;
+    if (!token) {
+      setErrorMessage("Authentication error. Please log in again.");
+      return;
+    }
 
     setIsUploading(true);
+    setErrorMessage("");
     setUploadSuccess(false);
 
     const formData = new FormData();
@@ -63,15 +70,44 @@ export default function ResumeAnalysisPage() {
         setAnalysis(data.data.analysis);
         setCurrentFileName(file.name);
         setUploadSuccess(true);
-        setTimeout(() => setUploadSuccess(false), 3000);
+        setShowUploadModal(false);
+        setTimeout(() => setUploadSuccess(false), 4000);
       } else {
-        alert("Upload failed: " + (data.message || "Unknown error"));
+        setErrorMessage("Upload failed: " + (data.message || "Unknown error"));
       }
     } catch (err) {
       console.error(err);
-      alert("An error occurred during upload.");
+      setErrorMessage("An error occurred during upload. Please check your connection.");
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processUpload(file);
+    }
+    // Clear input so selecting the same file triggers again
+    e.target.value = "";
+  };
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processUpload(e.dataTransfer.files[0]);
     }
   };
 
@@ -80,31 +116,41 @@ export default function ResumeAnalysisPage() {
     return (
       <div className="text-white p-8 flex flex-col items-center justify-center min-h-[60vh]">
         <input
-          ref={fileInputRef}
+          id="initial-resume-input"
           type="file"
-          accept=".pdf"
-          className="hidden"
-          onChange={handleUpload}
+          accept="application/pdf,.pdf"
+          style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", pointerEvents: "none" }}
+          onChange={handleFileInputChange}
         />
-        <div className="bg-[#121a2f] p-8 rounded-2xl border border-[#1e293b] shadow-sm flex flex-col items-center max-w-md w-full text-center">
+        <div 
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+          className={`bg-[#121a2f] p-8 rounded-2xl border ${dragActive ? 'border-blue-500 bg-blue-500/10' : 'border-[#1e293b]'} shadow-sm flex flex-col items-center max-w-md w-full text-center transition`}
+        >
           <div className="w-16 h-16 bg-[#1e293b] text-blue-500 rounded-full flex items-center justify-center text-3xl mb-4 shadow-inner">
             📄
           </div>
           <h2 className="text-xl font-bold mb-2">No Resume Found</h2>
           <p className="text-slate-400 text-sm mb-6">
-            Upload your resume in PDF format to get an AI-powered analysis of your skills and experience.
+            Upload your resume in PDF format (or drag & drop here) to get an AI-powered analysis.
           </p>
+
+          {errorMessage && (
+            <p className="text-red-400 text-xs mb-4 bg-red-900/20 border border-red-800 px-3 py-2 rounded-lg w-full">
+              {errorMessage}
+            </p>
+          )}
           
-          <button
-            id="upload-initial-pdf-btn"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className={`w-full py-3 rounded-xl font-bold text-sm transition text-center shadow-lg shadow-blue-500/20 ${
-              isUploading ? "bg-blue-800 text-slate-300 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700 text-white"
+          <label
+            htmlFor="initial-resume-input"
+            className={`w-full py-3 rounded-xl font-bold text-sm transition text-center cursor-pointer shadow-lg shadow-blue-500/20 block ${
+              isUploading ? "bg-blue-800 text-slate-300 pointer-events-none" : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
             {isUploading ? "Analyzing..." : "Upload PDF"}
-          </button>
+          </label>
         </div>
       </div>
     );
@@ -116,14 +162,15 @@ export default function ResumeAnalysisPage() {
   const strokeDashoffset = circumference - (analysis.score / 100) * circumference;
 
   return (
-    <div className="max-w-5xl mx-auto w-full text-white pb-10">
-      {/* Hidden file input controlled by useRef */}
+    <div className="max-w-5xl mx-auto w-full text-white pb-10 relative">
+      {/* Hidden file input with HTML5 label association (100% reliable on Safari/macOS) */}
       <input
+        id="resume-reupload-input"
         ref={fileInputRef}
         type="file"
-        accept=".pdf"
-        className="hidden"
-        onChange={handleUpload}
+        accept="application/pdf,.pdf"
+        style={{ position: "absolute", opacity: 0, width: "1px", height: "1px", pointerEvents: "none" }}
+        onChange={handleFileInputChange}
       />
 
       {/* Header section */}
@@ -145,14 +192,15 @@ export default function ResumeAnalysisPage() {
               ✓ Analysis Updated!
             </span>
           )}
-          <button
-            id="reupload-pdf-btn"
+
+          {/* Re-upload Button using label with htmlFor + onClick fallback */}
+          <label
+            htmlFor="resume-reupload-input"
             onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-[#334155] shadow-sm ${
+            className={`px-5 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 border border-[#334155] shadow-sm cursor-pointer select-none ${
               isUploading
-                ? "bg-[#0b1120] text-slate-500 cursor-not-allowed"
-                : "bg-[#121a2f] hover:bg-[#1e293b] text-white"
+                ? "bg-[#0b1120] text-slate-500 pointer-events-none"
+                : "bg-[#121a2f] hover:bg-[#1e293b] text-white active:scale-95"
             }`}
           >
             {isUploading ? (
@@ -171,9 +219,16 @@ export default function ResumeAnalysisPage() {
                 Re-upload PDF
               </>
             )}
-          </button>
+          </label>
         </div>
       </div>
+
+      {errorMessage && (
+        <div className="mb-6 bg-red-900/30 border border-red-800 text-red-300 text-sm px-4 py-3 rounded-xl flex items-center justify-between">
+          <span>{errorMessage}</span>
+          <button onClick={() => setErrorMessage("")} className="text-red-400 hover:text-white font-bold ml-4">✕</button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Feedback Sections (Left Column, span 3) */}
