@@ -11,7 +11,7 @@ export default function PortfolioPage() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveSuccessToast, setSaveSuccessToast] = useState("");
 
-  // Form State for Editing/Adding
+  // Form State
   const [formData, setFormData] = useState({
     fullName: "Naimul Hasan",
     title: "Backend Developer",
@@ -49,7 +49,7 @@ export default function PortfolioPage() {
     return localStorage.getItem("token") || "";
   };
 
-  const fetchPortfolios = async () => {
+  const fetchPortfolios = async (selectLatest = false) => {
     const token = getToken();
     if (!token) {
       router.push("/login");
@@ -63,6 +63,9 @@ export default function PortfolioPage() {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         setPortfolios(data);
+        if (selectLatest) {
+          setActivePortfolioIndex(0);
+        }
       } else if (data && !data.message) {
         setPortfolios([data]);
       }
@@ -102,31 +105,41 @@ export default function PortfolioPage() {
     ],
     skills: ["JavaScript", "Node.js", "MongoDB", "Express", "REST", "Git"],
     certifications: [
-      { name: "Meta Backend Developer (Coursera)" },
-      { name: "MongoDB University M001" }
+      "Meta Backend Developer (Coursera)",
+      "MongoDB University M001"
     ]
   };
 
+  // Helper to extract clean certification strings
+  const getCertStrings = (certs) => {
+    if (!Array.isArray(certs)) return [];
+    return certs.map(c => {
+      if (typeof c === "string") return c;
+      if (c && typeof c === "object") return c.name || c.title || "";
+      return "";
+    }).filter(Boolean);
+  };
+
   // Open Edit Modal with current active portfolio data
-  const handleOpenEditModal = () => {
-    const certNames = (activePortfolio.certifications || []).map(c => typeof c === 'string' ? c : c.name || '');
+  const handleOpenEditModal = (targetPort = activePortfolio) => {
+    const certList = getCertStrings(targetPort.certifications);
     setFormData({
-      fullName: activePortfolio.fullName || "",
-      title: activePortfolio.title || "",
-      university: activePortfolio.university || "",
-      avatarInitials: activePortfolio.avatarInitials || "NH",
-      employabilityScore: activePortfolio.employabilityScore !== undefined ? activePortfolio.employabilityScore : 76,
-      github: activePortfolio.links?.github || "",
-      linkedin: activePortfolio.links?.linkedin || "",
-      website: activePortfolio.links?.website || "",
-      projects: (activePortfolio.projects || []).map(p => ({
+      fullName: targetPort.fullName || "",
+      title: targetPort.title || "",
+      university: targetPort.university || "",
+      avatarInitials: targetPort.avatarInitials || (targetPort.fullName ? targetPort.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : "NH"),
+      employabilityScore: targetPort.employabilityScore !== undefined ? targetPort.employabilityScore : 76,
+      github: targetPort.links?.github || "github.com/naimul",
+      linkedin: targetPort.links?.linkedin || "in/naimul-hasan",
+      website: targetPort.links?.website || "naimul.dev",
+      projects: (targetPort.projects || []).map(p => ({
         title: p.title || "",
         description: p.description || "",
         techStack: Array.isArray(p.techStack) ? p.techStack : [],
         repoUrl: p.repoUrl || ""
       })),
-      skills: Array.isArray(activePortfolio.skills) ? [...activePortfolio.skills] : [],
-      certifications: certNames.length > 0 ? certNames : ["Meta Backend Developer (Coursera)", "MongoDB University M001"]
+      skills: Array.isArray(targetPort.skills) && targetPort.skills.length > 0 ? [...targetPort.skills] : ["JavaScript", "Node.js", "MongoDB", "Express", "REST", "Git"],
+      certifications: certList.length > 0 ? certList : ["Meta Backend Developer (Coursera)", "MongoDB University M001"]
     });
     setIsEditModalOpen(true);
   };
@@ -139,17 +152,17 @@ export default function PortfolioPage() {
       university: "",
       avatarInitials: "",
       employabilityScore: 80,
-      github: "",
-      linkedin: "",
+      github: "github.com/",
+      linkedin: "in/",
       website: "",
       projects: [
         {
-          title: "New Project",
-          description: "Full stack application with modern architecture.",
-          techStack: ["React", "Node.js"]
+          title: "My New Project",
+          description: "Full stack application with modern cloud architecture.",
+          techStack: ["React", "Node.js", "MongoDB"]
         }
       ],
-      skills: ["JavaScript", "React", "Node.js"],
+      skills: ["JavaScript", "React", "Node.js", "TypeScript"],
       certifications: ["Full Stack Specialization"]
     });
     setIsAddModalOpen(true);
@@ -161,6 +174,10 @@ export default function PortfolioPage() {
     if (!token) return;
 
     setSaveLoading(true);
+
+    // Clean skills and certifications
+    const cleanSkills = formData.skills.filter(s => typeof s === "string" && s.trim().length > 0);
+    const cleanCerts = formData.certifications.filter(c => typeof c === "string" && c.trim().length > 0);
 
     const payload = {
       fullName: formData.fullName || "Naimul Hasan",
@@ -174,8 +191,8 @@ export default function PortfolioPage() {
         website: formData.website
       },
       projects: formData.projects,
-      skills: formData.skills,
-      certifications: formData.certifications.map(c => ({ name: typeof c === 'string' ? c : c.name }))
+      skills: cleanSkills.length > 0 ? cleanSkills : ["JavaScript", "Node.js", "MongoDB", "Express"],
+      certifications: cleanCerts.length > 0 ? cleanCerts : ["Meta Backend Developer (Coursera)"]
     };
 
     try {
@@ -203,7 +220,7 @@ export default function PortfolioPage() {
       }
 
       if (res.ok) {
-        await fetchPortfolios();
+        await fetchPortfolios(isNew);
         setIsEditModalOpen(false);
         setIsAddModalOpen(false);
         setSaveSuccessToast(isNew ? "✓ New Portfolio Created!" : "✓ Portfolio Saved Successfully!");
@@ -231,6 +248,8 @@ export default function PortfolioPage() {
     );
   }
 
+  const activeCerts = getCertStrings(activePortfolio.certifications);
+
   return (
     <div className="max-w-5xl mx-auto w-full text-white pb-12 relative">
       
@@ -242,7 +261,7 @@ export default function PortfolioPage() {
       )}
 
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
         <div>
           <p className="text-xs text-blue-500 font-bold tracking-widest uppercase mb-1">Public Portfolio</p>
           <h1 className="text-3xl font-bold mt-1">Your professional portfolio</h1>
@@ -251,20 +270,6 @@ export default function PortfolioPage() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-3 flex-wrap">
-          {portfolios.length > 1 && (
-            <select
-              value={activePortfolioIndex}
-              onChange={(e) => setActivePortfolioIndex(Number(e.target.value))}
-              className="bg-[#121a2f] text-slate-300 border border-[#334155] rounded-xl px-3 py-2.5 text-xs font-semibold focus:outline-none focus:border-blue-500"
-            >
-              {portfolios.map((p, idx) => (
-                <option key={idx} value={idx}>
-                  Portfolio {idx + 1}: {p.fullName || 'Draft'}
-                </option>
-              ))}
-            </select>
-          )}
-
           <button
             type="button"
             id="add-portfolio-btn"
@@ -277,7 +282,7 @@ export default function PortfolioPage() {
           <button
             type="button"
             id="edit-portfolio-btn"
-            onClick={handleOpenEditModal}
+            onClick={() => handleOpenEditModal(activePortfolio)}
             className="bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl text-sm font-bold transition shadow-lg shadow-blue-500/20 whitespace-nowrap flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -288,7 +293,76 @@ export default function PortfolioPage() {
         </div>
       </div>
 
-      {/* Profile Card Banner */}
+      {/* Portfolio History Blocks (Grid of all added portfolios) */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            All Portfolios ({portfolios.length})
+          </p>
+          <span className="text-xs text-slate-500">Click any block to view &amp; edit</span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {portfolios.map((p, idx) => {
+            const isSelected = idx === activePortfolioIndex;
+            return (
+              <div
+                key={p._id || idx}
+                onClick={() => setActivePortfolioIndex(idx)}
+                className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                  isSelected
+                    ? "bg-[#121a2f] border-blue-500 shadow-lg shadow-blue-500/10 ring-1 ring-blue-500"
+                    : "bg-[#0f172a] border-[#1e293b] hover:border-slate-600 hover:bg-[#121a2f]"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-blue-400 flex items-center justify-center font-bold text-white text-sm shrink-0">
+                      {p.avatarInitials || (p.fullName ? p.fullName.substring(0, 2).toUpperCase() : "NH")}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm line-clamp-1">{p.fullName || "Naimul Hasan"}</h4>
+                      <p className="text-xs text-slate-400 line-clamp-1">{p.title || "Backend Developer"}</p>
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <span className="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40 px-2 py-0.5 rounded-full font-bold">
+                      Active
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-[#1e293b] text-xs text-slate-400">
+                  <span>{p.projects ? p.projects.length : 0} Projects</span>
+                  <span className="text-blue-400 font-semibold">{p.employabilityScore !== undefined ? p.employabilityScore : 76} Score</span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePortfolioIndex(idx);
+                      handleOpenEditModal(p);
+                    }}
+                    className="text-blue-400 hover:underline font-bold"
+                  >
+                    Edit ✎
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* Quick Add Block */}
+          <div
+            onClick={handleOpenAddModal}
+            className="p-4 rounded-2xl border border-dashed border-[#334155] hover:border-blue-400 bg-[#0b1120]/60 hover:bg-blue-500/5 transition cursor-pointer flex flex-col items-center justify-center min-h-[96px] text-center"
+          >
+            <span className="text-2xl text-blue-400 mb-1">+</span>
+            <span className="text-xs font-bold text-slate-300">Add Another Portfolio</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Selected Portfolio Card Banner */}
       <div className="bg-[#121a2f] rounded-2xl border border-[#1e293b] p-6 md:p-8 mb-6 shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
@@ -412,15 +486,12 @@ export default function PortfolioPage() {
             <div>
               <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-3.5">Certifications</p>
               <ul className="space-y-3 text-sm text-slate-300">
-                {(activePortfolio.certifications || []).map((cert, idx) => {
-                  const certName = typeof cert === "string" ? cert : cert.name;
-                  return (
-                    <li key={idx} className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                      <span>{certName}</span>
-                    </li>
-                  );
-                })}
+                {activeCerts.map((certName, idx) => (
+                  <li key={idx} className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                    <span>{certName}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
