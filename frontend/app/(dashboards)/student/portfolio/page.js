@@ -120,9 +120,20 @@ export default function PortfolioPage() {
     }).filter(Boolean);
   };
 
+  // Text buffer state for free-typing in inputs
+  const [skillsText, setSkillsText] = useState("");
+  const [certificationsText, setCertificationsText] = useState("");
+
   // Open Edit Modal with current active portfolio data
   const handleOpenEditModal = (targetPort = activePortfolio) => {
     const certList = getCertStrings(targetPort.certifications);
+    const skillsList = Array.isArray(targetPort.skills) && targetPort.skills.length > 0
+      ? targetPort.skills
+      : ["JavaScript", "Node.js", "MongoDB", "Express", "REST", "Git"];
+    const certsFinal = certList.length > 0
+      ? certList
+      : ["Meta Backend Developer (Coursera)", "MongoDB University M001"];
+
     setFormData({
       fullName: targetPort.fullName || "",
       title: targetPort.title || "",
@@ -136,16 +147,21 @@ export default function PortfolioPage() {
         title: p.title || "",
         description: p.description || "",
         techStack: Array.isArray(p.techStack) ? p.techStack : [],
+        techStackText: Array.isArray(p.techStack) ? p.techStack.join(", ") : "",
         repoUrl: p.repoUrl || ""
       })),
-      skills: Array.isArray(targetPort.skills) && targetPort.skills.length > 0 ? [...targetPort.skills] : ["JavaScript", "Node.js", "MongoDB", "Express", "REST", "Git"],
-      certifications: certList.length > 0 ? certList : ["Meta Backend Developer (Coursera)", "MongoDB University M001"]
+      skills: skillsList,
+      certifications: certsFinal
     });
+    setSkillsText(skillsList.join(", "));
+    setCertificationsText(certsFinal.join(", "));
     setIsEditModalOpen(true);
   };
 
   // Open Add New Portfolio Modal
   const handleOpenAddModal = () => {
+    const defaultSkills = ["JavaScript", "React", "Node.js", "TypeScript"];
+    const defaultCerts = ["Full Stack Specialization"];
     setFormData({
       fullName: "",
       title: "",
@@ -159,12 +175,15 @@ export default function PortfolioPage() {
         {
           title: "My New Project",
           description: "Full stack application with modern cloud architecture.",
-          techStack: ["React", "Node.js", "MongoDB"]
+          techStack: ["React", "Node.js", "MongoDB"],
+          techStackText: "React, Node.js, MongoDB"
         }
       ],
-      skills: ["JavaScript", "React", "Node.js", "TypeScript"],
-      certifications: ["Full Stack Specialization"]
+      skills: defaultSkills,
+      certifications: defaultCerts
     });
+    setSkillsText(defaultSkills.join(", "));
+    setCertificationsText(defaultCerts.join(", "));
     setIsAddModalOpen(true);
   };
 
@@ -175,9 +194,43 @@ export default function PortfolioPage() {
 
     setSaveLoading(true);
 
-    // Clean skills and certifications
-    const cleanSkills = formData.skills.filter(s => typeof s === "string" && s.trim().length > 0);
-    const cleanCerts = formData.certifications.filter(c => typeof c === "string" && c.trim().length > 0);
+    // Parse skills from skillsText (handles both comma-separated and single entries)
+    let parsedSkills = skillsText
+      .split(/[\n,]+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (parsedSkills.length === 0) {
+      parsedSkills = formData.skills.filter(s => typeof s === "string" && s.trim().length > 0);
+    }
+    if (parsedSkills.length === 0) {
+      parsedSkills = ["JavaScript", "Node.js", "MongoDB", "Express"];
+    }
+
+    // Parse certifications from certificationsText (handles any free text, single or comma-separated)
+    let parsedCerts = certificationsText
+      .split(/[\n,]+/)
+      .map(c => c.trim())
+      .filter(Boolean);
+    if (parsedCerts.length === 0) {
+      parsedCerts = formData.certifications.filter(c => typeof c === "string" && c.trim().length > 0);
+    }
+    if (parsedCerts.length === 0) {
+      parsedCerts = ["Meta Backend Developer (Coursera)"];
+    }
+
+    // Process projects tech stacks
+    const processedProjects = formData.projects.map(proj => {
+      let stack = proj.techStack;
+      if (proj.techStackText !== undefined) {
+        stack = proj.techStackText.split(/[\n,]+/).map(t => t.trim()).filter(Boolean);
+      }
+      return {
+        title: proj.title || "Project",
+        description: proj.description || "",
+        techStack: stack && stack.length > 0 ? stack : ["React"],
+        repoUrl: proj.repoUrl || ""
+      };
+    });
 
     const payload = {
       fullName: formData.fullName || "Naimul Hasan",
@@ -190,9 +243,9 @@ export default function PortfolioPage() {
         linkedin: formData.linkedin,
         website: formData.website
       },
-      projects: formData.projects,
-      skills: cleanSkills.length > 0 ? cleanSkills : ["JavaScript", "Node.js", "MongoDB", "Express"],
-      certifications: cleanCerts.length > 0 ? cleanCerts : ["Meta Backend Developer (Coursera)"]
+      projects: processedProjects,
+      skills: parsedSkills,
+      certifications: parsedCerts
     };
 
     try {
@@ -599,7 +652,7 @@ export default function PortfolioPage() {
                     type="button"
                     onClick={() => setFormData({
                       ...formData,
-                      projects: [...formData.projects, { title: "New Project", description: "Project summary...", techStack: ["Node.js"] }]
+                      projects: [...formData.projects, { title: "New Project", description: "Project summary...", techStackText: "Node.js, Express" }]
                     })}
                     className="text-blue-400 text-xs hover:underline font-bold"
                   >
@@ -644,50 +697,50 @@ export default function PortfolioPage() {
                       />
                       <input
                         type="text"
-                        value={Array.isArray(proj.techStack) ? proj.techStack.join(", ") : ""}
+                        value={proj.techStackText !== undefined ? proj.techStackText : (Array.isArray(proj.techStack) ? proj.techStack.join(", ") : "")}
                         onChange={(e) => {
                           const updated = [...formData.projects];
-                          updated[pIdx].techStack = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+                          updated[pIdx].techStackText = e.target.value;
                           setFormData({ ...formData, projects: updated });
                         }}
                         className="w-full bg-[#121a2f] border border-[#1e293b] rounded-lg px-3 py-1.5 text-xs text-slate-400 focus:outline-none"
-                        placeholder="Tech stack (comma separated, e.g. Node.js, MongoDB)"
+                        placeholder="Tech stack (e.g. React, Node.js, MongoDB)"
                       />
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Skills & Certifications */}
+              {/* Skills & Certifications Input */}
               <div>
-                <label className="block text-slate-400 text-xs font-semibold mb-1">
-                  Top Skills (comma separated)
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-slate-400 text-xs font-semibold">
+                    Top Skills (type single or comma-separated words/phrases)
+                  </label>
+                  <span className="text-[11px] text-slate-500">e.g. JavaScript, React, Node.js, Python</span>
+                </div>
                 <input
                   type="text"
-                  value={formData.skills.join(", ")}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    skills: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
-                  })}
-                  className="w-full bg-[#0b1120] border border-[#1e293b] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                  placeholder="JavaScript, Node.js, MongoDB, Express, REST, Git"
+                  value={skillsText}
+                  onChange={(e) => setSkillsText(e.target.value)}
+                  className="w-full bg-[#0b1120] border border-[#1e293b] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                  placeholder="JavaScript, React, Node.js, Python, Docker"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-400 text-xs font-semibold mb-1">
-                  Certifications (comma separated)
-                </label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="text-slate-400 text-xs font-semibold">
+                    Certifications (type single or comma-separated cert names)
+                  </label>
+                  <span className="text-[11px] text-slate-500">e.g. Duke of Edinburgh, AWS Certified, Coursera</span>
+                </div>
                 <input
                   type="text"
-                  value={formData.certifications.join(", ")}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    certifications: e.target.value.split(",").map(s => s.trim()).filter(Boolean)
-                  })}
-                  className="w-full bg-[#0b1120] border border-[#1e293b] rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                  placeholder="Meta Backend Developer (Coursera), MongoDB University M001"
+                  value={certificationsText}
+                  onChange={(e) => setCertificationsText(e.target.value)}
+                  className="w-full bg-[#0b1120] border border-[#1e293b] rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Duke of Edinburgh Award, Meta Backend Developer, MongoDB University"
                 />
               </div>
             </div>
