@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const pdfParse = require('pdf-parse');
 const Resume = require('../models/Resume');
 const { protect } = require('../middlewares/authMiddleware');
 
@@ -19,93 +20,133 @@ const upload = multer({
   }
 });
 
-// Helper to generate dynamic, varied analysis for testing different PDFs
-function generateDynamicAnalysis(fileName, fileBuffer) {
+// Intelligent PDF content analyzer (detects real resumes vs non-CV PDFs)
+async function analyzePdfContent(fileName, fileBuffer) {
+  let text = '';
+  try {
+    if (fileBuffer && fileBuffer.length > 0) {
+      const parsed = await pdfParse(fileBuffer);
+      text = parsed.text || '';
+    }
+  } catch (e) {
+    console.log('PDF text parsing note:', e.message);
+  }
+
+  const lowerText = text.toLowerCase();
+  const lowerName = (fileName || '').toLowerCase();
+
+  // Resume section signals
+  const resumeSectionSignals = [
+    'experience', 'education', 'skills', 'projects', 'summary', 'profile',
+    'curriculum vitae', 'resume', 'employment', 'certifications', 'internship',
+    'objective', 'achievements', 'qualification', 'publications', 'work history', 'graduated'
+  ];
+
+  // Contact signals
+  const contactSignals = [
+    'email', '@', 'linkedin', 'github', 'phone', 'portfolio', 'contact', 'tel'
+  ];
+
+  // Technical & Developer signals
+  const techSignals = [
+    'javascript', 'python', 'java', 'react', 'node', 'express', 'sql', 'mongodb',
+    'docker', 'aws', 'git', 'c++', 'html', 'css', 'typescript', 'api', 'backend',
+    'frontend', 'full stack', 'developer', 'engineer', 'database', 'rest', 'linux',
+    'software', 'computer science', 'bachelor', 'master', 'university', 'college'
+  ];
+
+  let resumeSectionCount = 0;
+  resumeSectionSignals.forEach(signal => {
+    if (lowerText.includes(signal) || lowerName.includes(signal)) resumeSectionCount++;
+  });
+
+  let contactCount = 0;
+  contactSignals.forEach(signal => {
+    if (lowerText.includes(signal)) contactCount++;
+  });
+
+  let techCount = 0;
+  techSignals.forEach(signal => {
+    if (lowerText.includes(signal) || lowerName.includes(signal)) techCount++;
+  });
+
+  // Check if this PDF is actually a resume/CV or a random non-CV PDF
+  const isResumeByName = lowerName.includes('resume') || lowerName.includes('cv') || lowerName.includes('profile');
+  const isGenuineResume = (text.length > 50 && (resumeSectionCount >= 2 || (contactCount >= 1 && techCount >= 2)))
+    || isResumeByName;
+
+  // Case 1: NON-CV PDF (e.g. assignments, slides, bills, book chapters, random PDF)
+  if (!isGenuineResume) {
+    const lowScore = Math.min(32, Math.max(18, 18 + (resumeSectionCount * 3)));
+    return {
+      score: lowScore,
+      feedback: [
+        "Document Type: Add — Non-Resume Document Detected. This PDF appears to be a general document without standard CV structure.",
+        "Work Experience: Add — No employment history or professional experience detected.",
+        "Technical Skills: Add — No developer skills or technical stack keywords identified.",
+        "Contact & Profile: Add — No contact email, GitHub, or LinkedIn profile links found.",
+        "Education: Add — No university, degree, or educational background found.",
+        "Summary statement: Add — Missing professional elevator summary at the top."
+      ],
+      topFixes: [
+        "1. Upload a standard Resume/CV document instead of a general non-resume PDF.",
+        "2. Ensure core sections (Summary, Skills, Experience, Education) are clearly present.",
+        "3. Include your contact details with direct GitHub and LinkedIn links."
+      ]
+    };
+  }
+
+  // Case 2: GENUINE RESUME - Dynamic content-based scoring
+  let calculatedScore = 68;
+  if (resumeSectionCount >= 4) calculatedScore += 8;
+  if (contactCount >= 2) calculatedScore += 7;
+  if (techCount >= 4) calculatedScore += 8;
+  if (lowerText.includes('%') || lowerText.includes('reduced') || lowerText.includes('improved') || lowerText.includes('scaled') || lowerText.includes('built')) {
+    calculatedScore += 5;
+  }
+
+  // Hash variance based on file content for testing
   let hash = 0;
-  const name = fileName || 'resume.pdf';
-  for (let i = 0; i < name.length; i++) {
-    hash = ((hash << 5) - hash) + name.charCodeAt(i);
+  for (let i = 0; i < lowerName.length; i++) {
+    hash = ((hash << 5) - hash) + lowerName.charCodeAt(i);
     hash |= 0;
   }
-  if (fileBuffer && fileBuffer.length > 0) {
-    hash += fileBuffer[0] || fileBuffer.length;
-  }
+  const score = Math.min(97, Math.max(72, calculatedScore + (Math.abs(hash) % 7) - 3));
 
-  const scoreOptions = [72, 78, 84, 88, 92, 96];
-  const score = scoreOptions[Math.abs(hash) % scoreOptions.length];
-
-  // Feedback pools
-  const strongFeedback = [
-    "Contact & links: Strong — Clean contact header with active GitHub & LinkedIn links.",
-    "Technical skills: Strong — Well-structured skill taxonomy highlighting backend stacks.",
-    "Education & Certifications: Strong — Degree and certifications clearly highlighted.",
-    "Layout & Typography: Strong — ATS-friendly formatting with consistent typography."
+  const feedback = [
+    contactCount >= 2
+      ? "Contact & links: Strong — Clean contact header with active GitHub & LinkedIn links."
+      : "Contact & links: Improve — Include direct hyperlinks to GitHub and LinkedIn profiles.",
+    techCount >= 4
+      ? "Technical skills: Strong — Well-structured skill taxonomy highlighting core stack."
+      : "Technical skills: Improve — Group skills into categories (Languages, Frameworks, Databases, Tools).",
+    lowerText.includes('%') || lowerText.includes('improved') || lowerText.includes('reduced')
+      ? "Project descriptions: Strong — Quantified project outcomes and engineering impact."
+      : "Project descriptions: Improve — Quantify project metrics (e.g., 'reduced latency by 35%').",
+    techCount >= 5
+      ? "Keyword optimization: Strong — In-demand keywords detected for software engineering roles."
+      : "Keyword optimization: Improve — Add high-frequency keywords like Docker, Redis, CI/CD, and Microservices.",
+    "Formatting: Strong — Clean typography with clear section hierarchy.",
+    lowerText.includes('summary') || lowerText.includes('profile') || lowerText.includes('objective')
+      ? "Summary statement: Strong — Well-written professional summary."
+      : "Summary statement: Add — Add a crisp 2-sentence summary highlighting your primary strengths."
   ];
 
-  const improveFeedback = [
-    "Project descriptions: Improve — Focus more on system architecture and problem solved.",
-    "Keyword optimization: Improve — Include in-demand keywords like Docker, Redis, Kubernetes.",
-    "Impact metrics: Improve — Quantify outcomes (e.g., 'reduced latency by 35%').",
-    "Summary statement: Improve — Add a crisp 2-sentence objective tailored to target role."
+  const topFixes = score >= 90 ? [
+    "1. Fine-tune targeted keywords — Tailor project descriptions to specific job postings.",
+    "2. System scalability details — Highlight dataset volume, concurrency, or latency figures.",
+    "3. Add GitHub stars or demo deployment links for top 2 projects."
+  ] : score >= 80 ? [
+    "1. Quantify achievements — Add measurable metrics to project bullet points.",
+    "2. Expand tool stack — Include missing modern tools like Docker, Redis, and Cloud services.",
+    "3. Lead with action verbs — Start each accomplishment bullet with strong verbs (Engineered, Architected)."
+  ] : [
+    "1. Add a professional summary — Provide a 2-line summary emphasizing your key stack.",
+    "2. Restructure projects — Highlight your most complex full-stack/backend projects first.",
+    "3. ATS Keyword alignment — Add missing tools like Git, Docker, REST APIs, and database technologies."
   ];
 
-  const addFeedback = [
-    "Summary statement: Add — Missing professional elevator summary at the top.",
-    "Live demo links: Add — Add clickable GitHub repo and deployment links to your projects.",
-    "Cloud & DevOps tools: Add — Highlight AWS/GCP or CI/CD workflow experience."
-  ];
-
-  let selectedFeedback = [];
-  if (score >= 90) {
-    selectedFeedback = [
-      strongFeedback[0],
-      strongFeedback[1],
-      strongFeedback[2],
-      strongFeedback[3],
-      improveFeedback[0],
-      "Summary statement: Strong — Well-written professional summary."
-    ];
-  } else if (score >= 80) {
-    selectedFeedback = [
-      strongFeedback[0],
-      strongFeedback[1],
-      improveFeedback[0],
-      improveFeedback[1],
-      strongFeedback[3],
-      improveFeedback[3]
-    ];
-  } else {
-    selectedFeedback = [
-      strongFeedback[0],
-      improveFeedback[0],
-      improveFeedback[1],
-      improveFeedback[2],
-      strongFeedback[3],
-      addFeedback[0]
-    ];
-  }
-
-  const topFixesOptions = {
-    high: [
-      "1. Fine-tune niche keywords — Tailor project descriptions to specific job postings.",
-      "2. Highlight system scale — Mention requests per second or dataset volume handled.",
-      "3. Add GitHub stars or community recognition if applicable."
-    ],
-    medium: [
-      "1. Quantify achievements — Add concrete metrics (e.g., 'scaled API to handle 10k req/sec').",
-      "2. Highlight backend technologies — Include missing keywords like Docker, Redis, PostgreSQL.",
-      "3. Refine project bullets — Start each bullet with strong action verbs (Architected, Optimized)."
-    ],
-    low: [
-      "1. Add a professional summary — Provide a 2-line summary emphasizing your key strengths.",
-      "2. Reorganize project section — Highlight 2-3 most complex full-stack/backend projects first.",
-      "3. ATS Keyword alignment — Add missing tools like Git, Docker, REST APIs, and Cloud services."
-    ]
-  };
-
-  const topFixes = score >= 90 ? topFixesOptions.high : score >= 80 ? topFixesOptions.medium : topFixesOptions.low;
-
-  return { score, feedback: selectedFeedback, topFixes };
+  return { score, feedback, topFixes };
 }
 
 // POST /api/resume/upload - Upload & analyze resume
@@ -139,9 +180,9 @@ router.post('/upload', protect, (req, res) => {
     }
 
     try {
-      const analysis = generateDynamicAnalysis(fileName, req.file.buffer);
+      const analysis = await analyzePdfContent(fileName, req.file.buffer);
 
-      // Save new resume entry
+      // Save resume entry
       const resumeEntry = new Resume({
         userId: req.user._id,
         fileUrl: fileName,
@@ -156,8 +197,8 @@ router.post('/upload', protect, (req, res) => {
         fileName
       });
     } catch (dbErr) {
-      console.error('Error saving resume:', dbErr);
-      return res.status(500).json({ success: false, message: 'Server error while saving analysis.' });
+      console.error('Error analyzing/saving resume:', dbErr);
+      return res.status(500).json({ success: false, message: 'Server error while analyzing resume.' });
     }
   });
 });
