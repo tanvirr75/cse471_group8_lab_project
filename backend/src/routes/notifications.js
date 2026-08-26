@@ -3,60 +3,12 @@ const router = express.Router();
 const Notification = require('../models/Notification');
 const { protect } = require('../middlewares/authMiddleware');
 
-// Initial default sample notifications matching the UI
-const DEFAULT_NOTIFICATIONS = [
-  {
-    type: 'job_match',
-    title: 'New job match — 92%',
-    body: 'Backend Engineering Intern at Pathao matches your profile above your 80% threshold.',
-    link: '/student/jobs',
-    createdAt: new Date(Date.now() - 2 * 60 * 1000) // 2m ago
-  },
-  {
-    type: 'interview',
-    title: 'Interview invitation',
-    body: 'Pathao invited you to interview for Backend Intern — Tomorrow at 2:00 PM.',
-    link: '/student/applications',
-    createdAt: new Date(Date.now() - 60 * 60 * 1000) // 1h ago
-  },
-  {
-    type: 'score_update',
-    title: 'Employability score updated',
-    body: 'Your score increased by 6 points to 76 this week. Nice work!',
-    link: '/student/portfolio',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1d ago
-  },
-  {
-    type: 'roadmap',
-    title: 'Roadmap step completed',
-    body: 'You finished "Containerize a project with Docker". 4 steps remaining.',
-    link: '/student/career-readiness',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2d ago
-  },
-  {
-    type: 'industry_trend',
-    title: 'Industry trend',
-    body: 'Docker & Kubernetes skills are up 34% in backend job postings this quarter.',
-    link: '/student/dashboard',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3d ago
-  }
-];
-
-// GET /api/notifications - List all notifications for current user (auto-seeds if empty)
+// GET /api/notifications - List all real notifications for current user
+// Only returns notifications actually created via POST — no auto-seeding
 router.get('/', protect, async (req, res) => {
   try {
-    let notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 });
-
-    // If no notifications exist yet, auto-seed the 5 realistic mock notifications
-    if (notifications.length === 0) {
-      const seeded = DEFAULT_NOTIFICATIONS.map(n => ({
-        ...n,
-        userId: req.user._id
-      }));
-      notifications = await Notification.insertMany(seeded);
-    }
-
-    res.status(200).json(notifications);
+    const notifications = await Notification.find({ userId: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json(notifications); // returns [] if none exist yet
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
