@@ -144,7 +144,7 @@ export async function scheduleInterview(applicationId, interviewData) {
 export async function getRecommendations(params = {}) {
   const query = new URLSearchParams(params).toString();
   const res = await fetch(
-    `${API_URL}/api/recommendations${query ? \`?\${query}\` : ""}`,
+    `${API_URL}/api/recommendations${query ? `?${query}` : ""}`,
     { headers: getAuthHeaders() },
   );
   const data = await res.json();
