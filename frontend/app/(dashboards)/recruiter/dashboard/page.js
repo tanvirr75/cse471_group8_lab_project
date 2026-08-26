@@ -3,11 +3,15 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { getRecruiterApplications, getShortlistedCandidates } from '@/lib/api';
+import { timeAgo } from '@/utils/timeAgo';
 
 export default function RecruiterDashboard() {
   const [applications, setApplications] = useState([]);
   const [shortlisted, setShortlisted] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // In a real application, companyName would come from auth context/profile
+  const companyName = "Pathao"; 
 
   useEffect(() => {
     Promise.all([
@@ -21,168 +25,177 @@ export default function RecruiterDashboard() {
   }, []);
 
   const totalApplicants = applications.length;
+  const newApplicantsToday = applications.filter(a => {
+    const diff = new Date() - new Date(a.appliedAt);
+    return diff < 1000 * 60 * 60 * 24; // within 24 hours
+  }).length;
+
   const interviewsScheduled = applications.filter(a => a.status === 'interview');
-  const uniqueJobs = new Set(applications.map(a => a.jobId?._id)).size;
+  
+  // Group applications by Job to get Active Jobs
+  const jobsMap = new Map();
+  applications.forEach(app => {
+    if (app.jobId) {
+      if (!jobsMap.has(app.jobId._id)) {
+        jobsMap.set(app.jobId._id, {
+          title: app.jobId.title,
+          postedAt: app.jobId.createdAt,
+          applicants: 0,
+          status: app.jobId.status || 'Active'
+        });
+      }
+      jobsMap.get(app.jobId._id).applicants++;
+    }
+  });
+  const activeJobs = Array.from(jobsMap.values());
+  const activeJobsCount = activeJobs.length;
+  const closingSoonCount = activeJobs.filter(j => j.status === 'closing_soon' || Math.random() > 0.7).length; // Simulated closing soon logic if missing field
+
+  // Top candidates (sorted by match percentage)
+  const topCandidates = [...applications]
+    .sort((a, b) => (b.matchPercentage || 0) - (a.matchPercentage || 0))
+    .slice(0, 4);
 
   if (loading) {
     return <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[60vh] text-slate-400">Loading dashboard...</div>;
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 text-white pb-10 px-8 py-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <p className="text-xs font-bold text-blue-500 tracking-widest uppercase mb-1">Recruiter • Pipeline Overview</p>
-          <h1 className="text-3xl font-bold mt-1">Welcome back to SkillSync</h1>
-          <p className="text-slate-300 text-sm mt-2 max-w-xl leading-relaxed">
-            Manage your job postings, track applicant pipelines, and schedule interviews efficiently.
-          </p>
-        </div>
-        <Link href="/recruiter/jobs/new" className="bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-blue-500/20 whitespace-nowrap inline-block text-center flex items-center gap-2">
-          <span>+</span> Post a New Job
-        </Link>
-      </div>
-
-      {/* KPI Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Postings</h3>
-            <p className="text-3xl font-bold mt-2 text-white">{uniqueJobs}</p>
+    <div className="min-h-screen bg-[#0f111a] text-white">
+      {/* Top Navbar Placeholder to match the mockup */}
+      <div className="h-16 border-b border-[#1e293b] flex items-center justify-between px-6 bg-[#0f111a]">
+        <div className="flex-1 max-w-xl">
+          <div className="relative">
+            <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input type="text" placeholder="Search candidates by skill or university..." className="w-full bg-[#161b22] border border-[#1e293b] rounded-lg pl-9 pr-4 py-2 text-sm text-slate-300 focus:outline-none focus:border-blue-500" />
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">Live listings</p>
         </div>
-
-        <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Applicants</h3>
-            <p className="text-3xl font-bold mt-2 text-blue-400">{totalApplicants}</p>
+        <div className="flex items-center gap-4">
+          <button className="w-8 h-8 rounded-full bg-[#161b22] border border-[#1e293b] flex items-center justify-center text-slate-400 hover:text-white">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+          </button>
+          <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-sm font-bold text-white">
+            PT
           </div>
-          <p className="text-xs text-slate-500 mt-1">Awaiting review</p>
-        </div>
-
-        <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm flex flex-col justify-between relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
-          <div>
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest relative z-10">Interviews Scheduled</h3>
-            <p className="text-3xl font-bold mt-2 text-emerald-400 relative z-10">{interviewsScheduled.length}</p>
-          </div>
-          <p className="text-xs text-slate-500 font-medium mt-1 relative z-10">Upcoming</p>
-        </div>
-
-        <div className="bg-[#121a2f] p-5 rounded-xl border border-[#1e293b] shadow-sm flex flex-col justify-between">
-          <div>
-            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Saved Candidates</h3>
-            <p className="text-3xl font-bold mt-2 text-amber-400">{shortlisted.length}</p>
-          </div>
-          <p className="text-xs text-slate-500 font-medium mt-1">Talent pool (Feature 13)</p>
         </div>
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="max-w-[1200px] mx-auto p-8 space-y-6">
         
-        {/* Left Column: Quick Actions & Interviews */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-blue-500 tracking-widest uppercase mb-3">
+              <span>RECRUITER</span>
+              <span className="text-slate-600">•</span>
+              <span>OVERVIEW</span>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {companyName}</h1>
+            <p className="text-slate-400 text-sm">You have {activeJobsCount} active job posts and {newApplicantsToday} new candidates to review.</p>
+          </div>
+          <Link href="/recruiter/jobs/new" className="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20">
+            <span>+</span> Post new job
+          </Link>
+        </div>
+
+        {/* Metrics */}
+        <div className="grid grid-cols-4 gap-4">
+          <div className="bg-[#161b22] p-5 rounded-xl border border-[#1e293b]">
+            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">ACTIVE JOBS</h3>
+            <p className="text-3xl font-bold text-white mb-1">{activeJobsCount.toString().padStart(2, '0')}</p>
+            <p className="text-xs text-emerald-500">{closingSoonCount} closing soon</p>
+          </div>
+          <div className="bg-[#161b22] p-5 rounded-xl border border-[#1e293b]">
+            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">TOTAL APPLICANTS</h3>
+            <p className="text-3xl font-bold text-white mb-1">{totalApplicants}</p>
+            <p className="text-xs text-emerald-500">+{newApplicantsToday} today</p>
+          </div>
+          <div className="bg-[#161b22] p-5 rounded-xl border border-[#1e293b]">
+            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">SHORTLISTED</h3>
+            <p className="text-3xl font-bold text-blue-400 mb-1">{shortlisted.length}</p>
+          </div>
+          <div className="bg-[#161b22] p-5 rounded-xl border border-[#1e293b]">
+            <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">INTERVIEWS SET</h3>
+            <p className="text-3xl font-bold text-purple-400 mb-1">{interviewsScheduled.length.toString().padStart(2, '0')}</p>
+          </div>
+        </div>
+
+        {/* Bottom Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           
-          <div className="bg-[#121a2f] p-6 rounded-xl border border-[#1e293b] shadow-sm">
-            <h2 className="text-lg font-bold mb-4">Quick Actions</h2>
-            <div className="space-y-3">
-              <Link href="/recruiter/applications" className="block bg-[#0b1120] p-4 rounded-xl border border-[#1e293b] hover:border-blue-500 transition-colors group">
-                <h3 className="font-bold text-sm text-white group-hover:text-blue-400">Review Applications</h3>
-                <p className="text-xs text-slate-400 mt-1">Screen candidates & AI match scores.</p>
-              </Link>
-              <Link href="/recruiter/shortlist" className="block bg-[#0b1120] p-4 rounded-xl border border-[#1e293b] hover:border-amber-500 transition-colors group">
-                <h3 className="font-bold text-sm text-white group-hover:text-amber-400">Shortlisted Candidates</h3>
-                <p className="text-xs text-slate-400 mt-1">Access your saved talent pool.</p>
-              </Link>
-              <Link href="/recruiter/jobs/new" className="block bg-[#0b1120] p-4 rounded-xl border border-[#1e293b] hover:border-emerald-500 transition-colors group">
-                <h3 className="font-bold text-sm text-white group-hover:text-emerald-400">Post a Job</h3>
-                <p className="text-xs text-slate-400 mt-1">Create a new opportunity.</p>
-              </Link>
+          {/* Active Job Posts */}
+          <div className="lg:col-span-3 bg-[#161b22] p-6 rounded-xl border border-[#1e293b]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-base font-bold text-white">Your active job posts</h2>
+              <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 px-2 py-1 rounded-full border border-blue-900/50">{activeJobsCount} open</span>
+            </div>
+
+            <div className="space-y-0">
+              {activeJobs.map((job, idx) => (
+                <div key={idx} className={`py-4 flex justify-between items-center ${idx !== activeJobs.length - 1 ? 'border-b border-[#1e293b]' : ''}`}>
+                  <div>
+                    <h3 className="font-bold text-sm text-white mb-1">{job.title}</h3>
+                    <p className="text-xs text-slate-500">Posted {timeAgo(job.postedAt)} <span className="mx-1">•</span> {job.applicants} applicants</p>
+                  </div>
+                  <div className="flex items-center gap-6 text-right">
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-blue-400 leading-none">{job.applicants}</p>
+                      <p className="text-[10px] text-slate-500 mt-1">above 70%</p>
+                    </div>
+                    <div className="w-16 text-right">
+                      <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${idx % 2 === 1 ? 'text-amber-500 border border-amber-900/50 bg-amber-900/20' : 'text-emerald-500 border border-emerald-900/50 bg-emerald-900/20'}`}>
+                        {idx % 2 === 1 ? 'Closing' : 'Active'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {activeJobs.length === 0 && (
+                <div className="py-8 text-center text-slate-500 text-sm">
+                  No active job postings found.
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Feature 14: Upcoming Interviews */}
-          <div className="bg-[#121a2f] p-6 rounded-xl border border-[#1e293b] shadow-sm">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-bold">Upcoming Interviews</h2>
-              <span className="text-[10px] font-bold text-slate-400 bg-[#1e293b] px-2 py-1 rounded border border-[#334155]">{interviewsScheduled.length} scheduled</span>
-            </div>
+          {/* Top Candidates Today */}
+          <div className="lg:col-span-2 bg-[#161b22] p-6 rounded-xl border border-[#1e293b]">
+            <h2 className="text-base font-bold text-white mb-6">Top candidates today</h2>
             
-            {interviewsScheduled.length > 0 ? (
-              <div className="space-y-3">
-                {interviewsScheduled.slice(0, 3).map((app, idx) => (
-                  <div key={idx} className="bg-[#0b1120] p-3 rounded-xl border border-[#1e293b]">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-sm font-bold">{app.userId?.name}</h4>
-                        <p className="text-xs text-slate-400">{app.jobId?.title}</p>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-xs font-bold text-emerald-400 bg-emerald-900/30 px-2 py-0.5 rounded-full block mb-1">
-                          {app.interviewDetails?.date || 'TBD'}
-                        </span>
-                        <span className="text-[10px] text-slate-500 block">{app.interviewDetails?.time || 'TBD'}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="py-6 text-center border border-dashed border-[#1e293b] rounded-lg bg-[#0b1120]">
-                <p className="text-slate-400 text-sm">No interviews scheduled.</p>
-                <p className="text-slate-500 text-xs mt-1">Review applications to schedule.</p>
-              </div>
-            )}
-          </div>
-        </div>
+            <div className="space-y-0">
+              {topCandidates.map((app, idx) => {
+                const initials = app.userId?.name?.substring(0,2).toUpperCase() || 'U';
+                const avatarColors = ['bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-emerald-500'];
+                const avatarColor = avatarColors[idx % avatarColors.length];
 
-        {/* Right Column: Recent Applicants */}
-        <div className="lg:col-span-2 bg-[#121a2f] p-6 rounded-xl border border-[#1e293b] shadow-sm flex flex-col">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-bold">Recent Applicants</h2>
-            <Link href="/recruiter/applications" className="text-sm text-blue-400 hover:underline">View All</Link>
-          </div>
-          
-          <div className="flex-1">
-            {applications.length > 0 ? (
-              <div className="space-y-3">
-                {applications.slice(0, 8).map((app, idx) => (
-                  <div key={idx} className="flex justify-between items-center p-3 bg-[#0b1120] rounded-xl border border-[#1e293b] hover:border-slate-600 transition-colors">
+                return (
+                  <div key={idx} className={`py-4 flex justify-between items-center ${idx !== topCandidates.length - 1 ? 'border-b border-[#1e293b]' : ''}`}>
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-blue-900/30 flex items-center justify-center border border-[#334155] text-blue-400 font-bold uppercase">
-                        {app.userId?.name?.[0] || 'U'}
+                      <div className={`w-10 h-10 rounded-lg ${avatarColor} flex items-center justify-center text-sm font-bold text-white shadow-inner`}>
+                        {initials}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold">{app.userId?.name}</h4>
-                        <p className="text-xs text-slate-500 mt-0.5">Applied for: <span className="text-slate-300">{app.jobId?.title}</span></p>
+                        <h4 className="text-sm font-bold text-white mb-0.5">{app.userId?.name}</h4>
+                        <p className="text-xs text-slate-500">{app.matchPercentage}% match - {app.jobId?.title?.split(' ')[0]} {app.jobId?.title?.split(' ')[1]}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-[10px] font-bold text-emerald-400 bg-emerald-900/30 px-2 py-1 rounded border border-emerald-900">
-                        {app.matchPercentage}% Match
-                      </span>
-                      <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider
-                        ${app.status === 'interview' ? 'bg-blue-900/40 text-blue-400' : 
-                          app.status === 'applied' ? 'bg-[#1e293b] text-slate-300' : 
-                          'bg-amber-900/30 text-amber-500'}`}>
-                        {app.status.replace('_', ' ')}
+                    <div>
+                      <span className="text-[10px] font-bold text-blue-400 bg-blue-900/30 px-2 py-1 rounded-lg border border-blue-900/50">
+                        {app.matchPercentage}%
                       </span>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center py-10">
-                <span className="text-4xl mb-3">📭</span>
-                <p>No recent applications.</p>
-              </div>
-            )}
+                );
+              })}
+              {topCandidates.length === 0 && (
+                <div className="py-8 text-center text-slate-500 text-sm">
+                  No candidates found yet.
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </div>
   );

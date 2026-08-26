@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getTechNews } from '@/lib/api';
+import { getTechNews, getJobs } from '@/lib/api';
 
 export default function CareerHubPage() {
   const [activeTab, setActiveTab] = useState('jobs'); // 'jobs' or 'trends'
@@ -17,10 +17,26 @@ export default function CareerHubPage() {
   const fetchCareerData = async () => {
     try {
       setLoading(true);
-      // We kept the getTechNews route name to avoid breaking the proxy, but it now returns both
-      const response = await getTechNews();
-      setJobs(response.jobs || []);
-      setTrends(response.trends || []);
+      // Fetch both internal jobs and external news/jobs
+      const [newsResponse, internalJobsResponse] = await Promise.all([
+        getTechNews().catch(() => ({ jobs: [], trends: [] })),
+        getJobs().catch(() => [])
+      ]);
+
+      const internalJobs = (Array.isArray(internalJobsResponse) ? internalJobsResponse : (internalJobsResponse.jobs || [])).map(job => ({
+        title: job.title,
+        description: job.description || 'No description provided.',
+        publishedAt: job.createdAt,
+        url: `/jobs/${job._id}`,
+        source: job.company || 'Internal Posting',
+        imageUrl: null // Or a default image
+      }));
+
+      const externalJobs = newsResponse.jobs || [];
+      const combinedJobs = [...internalJobs, ...externalJobs];
+
+      setJobs(combinedJobs);
+      setTrends(newsResponse.trends || []);
       setError(null);
     } catch (err) {
       console.error('Error fetching career data:', err);
