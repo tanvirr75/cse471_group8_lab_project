@@ -67,6 +67,17 @@ export async function getJobById(id) {
   return res.json();
 }
 
+export async function createJob(jobData) {
+  const res = await fetch(`${API_URL}/api/jobs`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(jobData),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || "Failed to create job");
+  return result;
+}
+
 export async function applyToJob(jobId) {
   const res = await fetch(`${API_URL}/api/applications`, {
     method: "POST",

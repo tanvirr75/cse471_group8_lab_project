@@ -95,6 +95,23 @@ export default function Sidebar() {
                 Saved Candidates
               </Link>
             )}
+
+            {/* RECRUITER POST A JOB LINK */}
+            {pathname?.startsWith('/recruiter') && (
+              <Link
+                href="/recruiter/jobs/new"
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  pathname === '/recruiter/jobs/new'
+                    ? 'bg-[#1e293b] text-blue-400'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-[#1e293b]/50'
+                }`}
+              >
+                <span className={`${pathname === '/recruiter/jobs/new' ? 'text-blue-400' : 'text-slate-500'}`}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                </span>
+                Post a Job
+              </Link>
+            )}
           </nav>
         </div>
 
