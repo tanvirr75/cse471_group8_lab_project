@@ -21,7 +21,8 @@ const applicationSchema = new mongoose.Schema(
       time: { type: String },
       platform: { type: String },
       linkOrLocation: { type: String },
-      message: { type: String }
+      message: { type: String },
+      interviewStatus: { type: String, enum: ['pending', 'accepted', 'declined'], default: 'pending' }
     },
 
     appliedAt: { type: Date, default: Date.now },
