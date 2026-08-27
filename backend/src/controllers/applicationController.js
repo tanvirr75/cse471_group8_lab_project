@@ -53,19 +53,44 @@ exports.updateApplicationStatus = async (req, res) => {
 
 exports.getRecruiterApplications = async (req, res) => {
   try {
-    // Find jobs owned by this recruiter
     const jobs = await Job.find({ recruiterId: req.user.id }).select('_id');
-    const jobIds = jobs.map(j => j._id);
+    const jobIds = jobs.map(job => job._id);
 
-    // Find applications for those jobs
     const applications = await Application.find({ jobId: { $in: jobIds } })
-      .populate("jobId")
-      .populate("userId", "name email profilePicture targetRole skills employabilityScore")
-      .sort({ matchPercentage: -1, createdAt: -1 });
+      .populate('userId', 'name email profilePicture university department skills employabilityScore githubUrl linkedinUrl resumeUrl')
+      .populate('jobId', 'title company location type')
+      .sort({ appliedAt: -1 });
 
-    res.json(applications);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json(applications);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Get single application for a recruiter
+// @route   GET /api/applications/:id
+// @access  Private (Recruiter)
+exports.getApplicationById = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.id)
+      .populate('userId', 'name email profilePicture university department skills employabilityScore githubUrl linkedinUrl resumeUrl githubStats')
+      .populate('jobId', 'title company location type requirements');
+      
+    if (!application) {
+      return res.status(404).json({ message: 'Application not found' });
+    }
+
+    // Optional: Verify this application belongs to a job owned by this recruiter
+    const job = await Job.findById(application.jobId._id);
+    if (job.recruiterId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized to view this application' });
+    }
+
+    res.status(200).json(application);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

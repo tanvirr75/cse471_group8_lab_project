@@ -192,3 +192,12 @@ export async function getShortlistedCandidates() {
   if (!res.ok) throw new Error(data.message || "Failed to fetch shortlist");
   return data;
 }
+
+export async function getApplicationById(id) {
+  const res = await fetch(`${API_URL}/api/applications/${id}`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fetch application");
+  return data;
+}

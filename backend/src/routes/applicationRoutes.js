@@ -6,7 +6,8 @@ const {
   getMyApplications,
   updateApplicationStatus,
   getRecruiterApplications,
-  scheduleInterview
+  scheduleInterview,
+  getApplicationById
 } = require("../controllers/applicationController");
 
 // Protect all application routes
@@ -21,6 +22,7 @@ router.patch("/:id", updateApplicationStatus);
 
 // Recruiter routes
 router.get("/recruiter", authorizeRoles("recruiter"), getRecruiterApplications);
+router.get("/:id", authorizeRoles("recruiter"), getApplicationById);
 router.post("/:id/interview", authorizeRoles("recruiter"), scheduleInterview);
 
 module.exports = router;
