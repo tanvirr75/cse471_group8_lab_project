@@ -4,6 +4,10 @@ const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const Resume = require('../models/Resume');
 const { protect } = require('../middlewares/authMiddleware');
+<<<<<<< HEAD
+const { analyzeResumeWithGemini } = require('../services/geminiService');
+=======
+>>>>>>> origin/main
 
 // Configure multer with fileFilter for strict PDF validation
 const upload = multer({
@@ -180,7 +184,78 @@ router.post('/upload', protect, (req, res) => {
     }
 
     try {
+<<<<<<< HEAD
+      let analysis;
+
+      // Parse the PDF text to share with the AI analyzer
+      let text = '';
+      try {
+        if (req.file && req.file.buffer && req.file.buffer.length > 0) {
+          const parsed = await pdfParse(req.file.buffer);
+          text = parsed.text || '';
+        }
+      } catch (e) {
+        console.log('PDF text parsing note:', e.message);
+      }
+
+      const lowerText = text.toLowerCase();
+      const lowerName = fileName.toLowerCase();
+
+      // Detect whether this is actually a resume/CV vs a generic PDF
+      const resumeSectionSignals = [
+        'experience', 'education', 'skills', 'projects', 'summary', 'profile',
+        'curriculum vitae', 'resume', 'employment', 'certifications', 'internship',
+        'objective', 'achievements', 'qualification', 'publications', 'work history', 'graduated'
+      ];
+      let resumeSectionCount = 0;
+      resumeSectionSignals.forEach(signal => {
+        if (lowerText.includes(signal) || lowerName.includes(signal)) resumeSectionCount++;
+      });
+      const isResumeByName = lowerName.includes('resume') || lowerName.includes('cv') || lowerName.includes('profile');
+      const isGenuineResume = (text.length > 50 && resumeSectionCount >= 2) || isResumeByName;
+
+      // Case 1: NON-CV PDF - keep existing low-score heuristic (don't send to Gemini)
+      if (!isGenuineResume) {
+        analysis = await analyzePdfContent(fileName, req.file.buffer);
+      } else {
+        // Case 2: GENUINE RESUME - try Gemini AI first, fall back to heuristic
+        try {
+          const aiResult = await analyzeResumeWithGemini(fileName, text);
+          analysis = {
+            score: Math.min(100, Math.max(0, Math.round(aiResult.score || 78))),
+            feedback: Array.isArray(aiResult.feedback) && aiResult.feedback.length
+              ? aiResult.feedback.slice(0, 10)
+              : [],
+            topFixes: Array.isArray(aiResult.topFixes) && aiResult.topFixes.length
+              ? aiResult.topFixes.slice(0, 5)
+              : [],
+            keywords: Array.isArray(aiResult.keywords) ? aiResult.keywords : [],
+            sections: Array.isArray(aiResult.sections) ? aiResult.sections : []
+          };
+          if (!analysis.feedback.length) throw new Error('Empty AI feedback');
+        } catch (aiErr) {
+          console.log('Gemini unavailable, using heuristic fallback:', aiErr.message);
+          const h = await analyzePdfContent(fileName, req.file.buffer);
+          analysis = {
+            ...h,
+            structureScore: h.score,
+            keywords: [],
+            sections: h.feedback.map(fb => {
+              const parts = fb.split(':');
+              const status = parts[0]?.includes('Improve') ? 'Improve'
+                : parts[0]?.includes('Add') ? 'Add' : 'Strong';
+              return {
+                name: parts[0]?.trim() || 'General',
+                status,
+                comment: parts.slice(1).join(':').trim()
+              };
+            })
+          };
+        }
+      }
+=======
       const analysis = await analyzePdfContent(fileName, req.file.buffer);
+>>>>>>> origin/main
 
       // Save resume entry
       const resumeEntry = new Resume({

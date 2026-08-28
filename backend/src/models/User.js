@@ -49,6 +49,22 @@ const userSchema = new mongoose.Schema(
     linkedinUsername: { type: String },
     companyName: { type: String },
     universityName: { type: String },
+<<<<<<< HEAD
+
+    // Dynamic Mockup Fields (Safely falling back if not provided by student yet)
+    skills: [{ type: String }],
+    cgpa: { type: Number },
+    employabilityScore: { type: Number },
+    githubStats: {
+      repositories: { type: Number, default: 0 },
+      languages: { type: Number, default: 0 },
+      contributions: { type: Number, default: 0 }
+    },
+
+    // Feature 13: Recruiter Shortlisting
+    shortlistedCandidates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+=======
+>>>>>>> origin/main
   },
   {
     timestamps: true,

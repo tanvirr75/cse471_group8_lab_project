@@ -2,9 +2,16 @@ const express = require('express');
 const router = express.Router();
 const { generateRoadmapWithGemini } = require('../services/geminiService');
 const Roadmap = require('../models/Roadmap');
+<<<<<<< HEAD
+const { protect, authorizeRoles } = require('../middlewares/authMiddleware');
+
+// POST /api/readiness/roadmap
+router.post('/roadmap', protect, authorizeRoles('student'), async (req, res) => {
+=======
 
 // POST /api/readiness/roadmap
 router.post('/roadmap', async (req, res) => {
+>>>>>>> origin/main
   try {
     const { userId, targetRole, currentSkills } = req.body;
 

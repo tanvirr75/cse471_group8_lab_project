@@ -67,6 +67,20 @@ export async function getJobById(id) {
   return res.json();
 }
 
+<<<<<<< HEAD
+export async function createJob(jobData) {
+  const res = await fetch(`${API_URL}/api/jobs`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(jobData),
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || "Failed to create job");
+  return result;
+}
+
+=======
+>>>>>>> origin/main
 export async function applyToJob(jobId) {
   const res = await fetch(`${API_URL}/api/applications`, {
     method: "POST",
@@ -161,3 +175,35 @@ export async function getTechNews() {
   if (!res.ok) throw new Error(data.message || "Failed to load news");
   return data;
 }
+<<<<<<< HEAD
+
+// Feature 13: Recruiter Candidate Shortlisting
+export async function toggleShortlist(candidateId) {
+  const res = await fetch(`${API_URL}/api/recruiters/shortlist/${candidateId}`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to toggle shortlist");
+  return data;
+}
+
+export async function getShortlistedCandidates() {
+  const res = await fetch(`${API_URL}/api/recruiters/shortlist`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fetch shortlist");
+  return data;
+}
+
+export async function getApplicationById(id) {
+  const res = await fetch(`${API_URL}/api/applications/${id}`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to fetch application");
+  return data;
+}
+=======
+>>>>>>> origin/main
