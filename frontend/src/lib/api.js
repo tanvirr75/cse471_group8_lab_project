@@ -67,6 +67,7 @@ export async function getJobById(id) {
   return res.json();
 }
 
+<<<<<<< HEAD
 export async function createJob(jobData) {
   const res = await fetch(`${API_URL}/api/jobs`, {
     method: "POST",
@@ -78,6 +79,8 @@ export async function createJob(jobData) {
   return result;
 }
 
+=======
+>>>>>>> origin/main
 export async function applyToJob(jobId) {
   const res = await fetch(`${API_URL}/api/applications`, {
     method: "POST",
@@ -172,6 +175,7 @@ export async function getTechNews() {
   if (!res.ok) throw new Error(data.message || "Failed to load news");
   return data;
 }
+<<<<<<< HEAD
 
 // Feature 13: Recruiter Candidate Shortlisting
 export async function toggleShortlist(candidateId) {
@@ -201,3 +205,5 @@ export async function getApplicationById(id) {
   if (!res.ok) throw new Error(data.message || "Failed to fetch application");
   return data;
 }
+=======
+>>>>>>> origin/main

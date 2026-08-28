@@ -24,7 +24,10 @@ const jobSchema = new mongoose.Schema(
       default: 'Entry-level'
     },
     educationRequirement: { type: String, default: '' },
+<<<<<<< HEAD
     minimumQualification: { type: String, default: '' },
+=======
+>>>>>>> origin/main
     salaryRange: { 
       min: { type: Number }, 
       max: { type: Number }, 

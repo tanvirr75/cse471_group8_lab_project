@@ -7,7 +7,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 async function generateRoadmapWithGemini(targetRole, currentSkills) {
   const model = genAI.getGenerativeModel({
+<<<<<<< HEAD
     model: 'gemini-3.6-flash',
+=======
+    model: 'gemini-1.5-flash',
+>>>>>>> origin/main
     generationConfig: { responseMimeType: 'application/json' }
   });
 
@@ -48,6 +52,7 @@ async function generateRoadmapWithGemini(targetRole, currentSkills) {
   return JSON.parse(result.response.text());
 }
 
+<<<<<<< HEAD
 /**
  * Feature 2: AI Resume Analysis
  * Gemini evaluates an uploaded resume's structure, formatting, projects,
@@ -104,3 +109,6 @@ async function analyzeResumeWithGemini(fileName, text) {
 }
 
 module.exports = { generateRoadmapWithGemini, analyzeResumeWithGemini };
+=======
+module.exports = { generateRoadmapWithGemini };
+>>>>>>> origin/main

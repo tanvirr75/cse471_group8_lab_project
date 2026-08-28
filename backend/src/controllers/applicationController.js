@@ -53,6 +53,7 @@ exports.updateApplicationStatus = async (req, res) => {
 
 exports.getRecruiterApplications = async (req, res) => {
   try {
+<<<<<<< HEAD
     const jobs = await Job.find({ recruiterId: req.user.id }).select('_id');
     const jobIds = jobs.map(job => job._id);
 
@@ -91,6 +92,21 @@ exports.getApplicationById = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
+=======
+    // Find jobs owned by this recruiter
+    const jobs = await Job.find({ recruiterId: req.user.id }).select('_id');
+    const jobIds = jobs.map(j => j._id);
+
+    // Find applications for those jobs
+    const applications = await Application.find({ jobId: { $in: jobIds } })
+      .populate("jobId")
+      .populate("userId", "name email profilePicture targetRole skills employabilityScore")
+      .sort({ matchPercentage: -1, createdAt: -1 });
+
+    res.json(applications);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+>>>>>>> origin/main
   }
 };
 
