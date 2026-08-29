@@ -1,5 +1,10 @@
 import ProtectedRoute from "../../../src/components/common/ProtectedRoute";
+import DashboardShell from "../../../src/components/common/DashboardShell";
 
 export default function Layout({ children }) {
-  return <ProtectedRoute allowedRoles={['university']}>{children}</ProtectedRoute>;
+  return (
+    <ProtectedRoute allowedRoles={['university']}>
+      <DashboardShell>{children}</DashboardShell>
+    </ProtectedRoute>
+  );
 }

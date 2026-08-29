@@ -67,7 +67,6 @@ export async function getJobById(id) {
   return res.json();
 }
 
-<<<<<<< HEAD
 export async function createJob(jobData) {
   const res = await fetch(`${API_URL}/api/jobs`, {
     method: "POST",
@@ -79,8 +78,6 @@ export async function createJob(jobData) {
   return result;
 }
 
-=======
->>>>>>> origin/main
 export async function applyToJob(jobId) {
   const res = await fetch(`${API_URL}/api/applications`, {
     method: "POST",
@@ -154,6 +151,24 @@ export async function scheduleInterview(applicationId, interviewData) {
 }
 
 // Feature 11: persisted recommendations from the smart recommendation engine.
+export async function getCareerRecommendations() {
+  const res = await fetch(`${API_URL}/api/recommendations/career`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load career recommendations");
+  return data;
+}
+
+export async function generateCareerRecommendations() {
+  const res = await fetch(`${API_URL}/api/recommendations/career`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to generate career recommendations");
+  return data;
+}
 // Pass { refresh: "true" } to force a re-score of every open job.
 export async function getRecommendations(params = {}) {
   const query = new URLSearchParams(params).toString();
@@ -175,8 +190,6 @@ export async function getTechNews() {
   if (!res.ok) throw new Error(data.message || "Failed to load news");
   return data;
 }
-<<<<<<< HEAD
-
 // Feature 13: Recruiter Candidate Shortlisting
 export async function toggleShortlist(candidateId) {
   const res = await fetch(`${API_URL}/api/recruiters/shortlist/${candidateId}`, {
@@ -205,5 +218,44 @@ export async function getApplicationById(id) {
   if (!res.ok) throw new Error(data.message || "Failed to fetch application");
   return data;
 }
-=======
->>>>>>> origin/main
+
+// Notifications API
+export async function getNotifications() {
+  const res = await fetch(`${API_URL}/api/notifications`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load notifications");
+  return data;
+}
+
+export async function markAllNotificationsAsRead() {
+  const res = await fetch(`${API_URL}/api/notifications/read-all`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update notifications");
+  return data;
+}
+
+// Profile API
+export async function getProfile() {
+  const res = await fetch(`${API_URL}/api/profile`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load profile");
+  return data;
+}
+
+export async function updateProfile(profileData) {
+  const res = await fetch(`${API_URL}/api/profile/update`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(profileData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update profile");
+  return data;
+}

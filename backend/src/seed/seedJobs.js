@@ -1,10 +1,6 @@
-﻿require("dotenv").config();
+require("dotenv").config();
 const mongoose = require("mongoose");
-<<<<<<< HEAD
 const Job = require("../models/Job");
-=======
-const Job = require("../src/models/Job");
->>>>>>> origin/main
 
 const sampleJobs = [
   {

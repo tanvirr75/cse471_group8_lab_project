@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -9,13 +8,6 @@ export default function Navbar() {
 
   return (
     <header className="h-16 w-full flex items-center justify-between border-b border-[#1e293b] px-6 lg:px-10 shrink-0 bg-[#0f111a]">
-=======
-import Link from 'next/link';
-
-export default function Navbar() {
-  return (
-    <header className="h-16 w-full flex items-center justify-between border-b border-[#1e293b] px-6 lg:px-10 shrink-0">
->>>>>>> origin/main
       
       {/* Search Bar */}
       <div className="flex-1 max-w-md">
@@ -25,11 +17,7 @@ export default function Navbar() {
           </svg>
           <input
             type="text"
-<<<<<<< HEAD
             placeholder={isRecruiter ? "Search candidates by skill or university..." : "Search jobs, skills, companies..."}
-=======
-            placeholder="Search jobs, skills, companies..."
->>>>>>> origin/main
             className="bg-transparent border-none outline-none text-sm text-slate-200 placeholder:text-slate-500 w-full"
           />
         </div>
@@ -39,11 +27,7 @@ export default function Navbar() {
       <div className="flex items-center gap-4 ml-4">
         {/* Notification bell */}
         <Link
-<<<<<<< HEAD
           href={isRecruiter ? "/recruiter/notifications" : "/student/notifications"}
-=======
-          href="/student/notifications"
->>>>>>> origin/main
           aria-label="Notifications"
           className="relative p-2 rounded-lg bg-[#1e293b]/50 text-slate-400 hover:text-white transition-colors border border-[#334155] hover:border-slate-500 flex items-center justify-center"
         >
@@ -54,13 +38,8 @@ export default function Navbar() {
         </Link>
 
         {/* Avatar */}
-<<<<<<< HEAD
         <div className={`h-9 w-9 rounded-lg ${isRecruiter ? 'bg-indigo-500 hover:bg-indigo-600' : 'bg-blue-500 hover:bg-blue-600'} flex items-center justify-center text-sm font-bold text-white shadow-lg cursor-pointer transition-colors`}>
           {isRecruiter ? 'PT' : 'NH'}
-=======
-        <div className="h-9 w-9 rounded-lg bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-lg cursor-pointer hover:bg-blue-600 transition-colors">
-          NH
->>>>>>> origin/main
         </div>
       </div>
     </header>

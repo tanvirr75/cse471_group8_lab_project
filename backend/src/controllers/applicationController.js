@@ -13,6 +13,18 @@ exports.applyToJob = async (req, res) => {
     if (existing) return res.status(409).json({ message: "Already applied to this job" });
 
     const application = await Application.create({ userId: req.user.id, jobId });
+
+    // Generate in-app Notification for the recruiter
+    const Notification = require("../models/Notification");
+    const student = await require("../models/User").findById(req.user.id);
+    await Notification.create({
+      userId: job.recruiterId, // Send to the recruiter who posted the job
+      type: "general",
+      title: "New Application Received",
+      body: `${student.name || "A student"} has applied for your ${job.title} position.`,
+      link: `/recruiter/applications/${application._id}`
+    });
+
     res.status(201).json(application);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -53,7 +65,6 @@ exports.updateApplicationStatus = async (req, res) => {
 
 exports.getRecruiterApplications = async (req, res) => {
   try {
-<<<<<<< HEAD
     const jobs = await Job.find({ recruiterId: req.user.id }).select('_id');
     const jobIds = jobs.map(job => job._id);
 
@@ -92,21 +103,6 @@ exports.getApplicationById = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
-=======
-    // Find jobs owned by this recruiter
-    const jobs = await Job.find({ recruiterId: req.user.id }).select('_id');
-    const jobIds = jobs.map(j => j._id);
-
-    // Find applications for those jobs
-    const applications = await Application.find({ jobId: { $in: jobIds } })
-      .populate("jobId")
-      .populate("userId", "name email profilePicture targetRole skills employabilityScore")
-      .sort({ matchPercentage: -1, createdAt: -1 });
-
-    res.json(applications);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
->>>>>>> origin/main
   }
 };
 

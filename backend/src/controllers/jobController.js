@@ -16,7 +16,6 @@ exports.getJobs = async (req, res) => {
   }
 };
 
-<<<<<<< HEAD
 exports.createJob = async (req, res) => {
   try {
     const jobData = { ...req.body, postedBy: req.user.id };
@@ -26,9 +25,6 @@ exports.createJob = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-=======
->>>>>>> origin/main
 exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);

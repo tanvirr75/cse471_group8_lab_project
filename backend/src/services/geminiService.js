@@ -7,11 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
  */
 async function generateRoadmapWithGemini(targetRole, currentSkills) {
   const model = genAI.getGenerativeModel({
-<<<<<<< HEAD
-    model: 'gemini-3.6-flash',
-=======
     model: 'gemini-1.5-flash',
->>>>>>> origin/main
     generationConfig: { responseMimeType: 'application/json' }
   });
 
@@ -52,7 +48,7 @@ async function generateRoadmapWithGemini(targetRole, currentSkills) {
   return JSON.parse(result.response.text());
 }
 
-<<<<<<< HEAD
+
 /**
  * Feature 2: AI Resume Analysis
  * Gemini evaluates an uploaded resume's structure, formatting, projects,
@@ -61,7 +57,7 @@ async function generateRoadmapWithGemini(targetRole, currentSkills) {
  */
 async function analyzeResumeWithGemini(fileName, text) {
   const model = genAI.getGenerativeModel({
-    model: 'gemini-3.6-flash',
+    model: 'gemini-1.5-flash',
     generationConfig: { responseMimeType: 'application/json' }
   });
 
@@ -108,7 +104,47 @@ async function analyzeResumeWithGemini(fileName, text) {
   return JSON.parse(result.response.text());
 }
 
-module.exports = { generateRoadmapWithGemini, analyzeResumeWithGemini };
-=======
-module.exports = { generateRoadmapWithGemini };
->>>>>>> origin/main
+/**
+ * Feature 10: AI Career Recommendation System
+ * Gemini analyzes a student's profile to recommend the top 3 career paths.
+ */
+async function recommendCareerPaths(profileData) {
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-flash',
+    generationConfig: { responseMimeType: 'application/json' }
+  });
+
+  const prompt = `
+  You are an expert AI Career Advisor for SkillSync.
+  Analyze the following student profile and recommend the top 3 most suitable technology career paths.
+
+  Student Profile:
+  - Skills: ${JSON.stringify(profileData.skills || [])}
+  - Career Interests: ${JSON.stringify(profileData.careerInterests || [])}
+  - Education: ${profileData.university || 'Not specified'} - ${profileData.department || 'Not specified'}
+  - Projects: ${JSON.stringify(profileData.projects?.map(p => p.title + ': ' + (p.techStack || []).join(', ')) || [])}
+
+  Based on this, suggest 3 roles (e.g., "Frontend Developer", "Data Scientist", "Cybersecurity Analyst").
+  Provide a strict JSON response matching this EXACT structure:
+  {
+    "text": "Based on your strong foundation in React and web technologies, you are highly suited for Frontend and Full-Stack roles.",
+    "roles": [
+      {
+        "name": "Frontend Developer",
+        "percentage": 85,
+        "reason": "You have solid experience with React, Tailwind, and multiple frontend projects."
+      },
+      {
+        "name": "Full Stack Developer",
+        "percentage": 65,
+        "reason": "You have frontend skills but need to build more backend projects using Node.js or Python."
+      }
+    ]
+  }
+  `;
+
+  const result = await model.generateContent(prompt);
+  return JSON.parse(result.response.text());
+}
+
+module.exports = { generateRoadmapWithGemini, analyzeResumeWithGemini, recommendCareerPaths };

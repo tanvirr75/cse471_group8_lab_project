@@ -4,10 +4,7 @@ const multer = require('multer');
 const pdfParse = require('pdf-parse');
 const Resume = require('../models/Resume');
 const { protect } = require('../middlewares/authMiddleware');
-<<<<<<< HEAD
 const { analyzeResumeWithGemini } = require('../services/geminiService');
-=======
->>>>>>> origin/main
 
 // Configure multer with fileFilter for strict PDF validation
 const upload = multer({
@@ -184,7 +181,7 @@ router.post('/upload', protect, (req, res) => {
     }
 
     try {
-<<<<<<< HEAD
+
       let analysis;
 
       // Parse the PDF text to share with the AI analyzer
@@ -253,9 +250,7 @@ router.post('/upload', protect, (req, res) => {
           };
         }
       }
-=======
-      const analysis = await analyzePdfContent(fileName, req.file.buffer);
->>>>>>> origin/main
+
 
       // Save resume entry
       const resumeEntry = new Resume({
