@@ -201,3 +201,44 @@ export async function getApplicationById(id) {
   if (!res.ok) throw new Error(data.message || "Failed to fetch application");
   return data;
 }
+
+// Notifications API
+export async function getNotifications() {
+  const res = await fetch(`${API_URL}/api/notifications`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load notifications");
+  return data;
+}
+
+export async function markAllNotificationsAsRead() {
+  const res = await fetch(`${API_URL}/api/notifications/read-all`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update notifications");
+  return data;
+}
+
+// Profile API
+export async function getProfile() {
+  const res = await fetch(`${API_URL}/api/profile`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load profile");
+  return data;
+}
+
+export async function updateProfile(profileData) {
+  const res = await fetch(`${API_URL}/api/profile/update`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(profileData),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to update profile");
+  return data;
+}

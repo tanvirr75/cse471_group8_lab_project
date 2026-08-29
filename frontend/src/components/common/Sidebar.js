@@ -102,6 +102,41 @@ export default function Sidebar() {
               </nav>
             </div>
           </>
+        ) : pathname?.startsWith('/university') ? (
+          <>
+            <div>
+              <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">University</p>
+              <nav className="flex flex-col gap-1">
+                {[
+                  { name: 'Analytics', href: '/university/dashboard', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg> },
+                ].map((item) => {
+                  const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                  return (
+                    <Link key={item.name} href={item.href} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? 'bg-[#1e293b] text-blue-400' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1e293b]/50'}`}>
+                      <span className={`${isActive ? 'text-blue-400' : 'text-slate-500'}`}>{item.icon}</span>
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+            <div>
+              <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Account</p>
+              <nav className="flex flex-col gap-1">
+                {[
+                  { name: 'University Profile', href: '/university/profile', icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg> },
+                ].map((item) => {
+                  const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+                  return (
+                    <Link key={item.name} href={item.href} className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${isActive ? 'bg-[#1e293b] text-blue-400' : 'text-slate-400 hover:text-slate-200 hover:bg-[#1e293b]/50'}`}>
+                      <span className={`${isActive ? 'text-blue-400' : 'text-slate-500'}`}>{item.icon}</span>
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          </>
         ) : (
           <>
             <div>

@@ -13,6 +13,18 @@ exports.applyToJob = async (req, res) => {
     if (existing) return res.status(409).json({ message: "Already applied to this job" });
 
     const application = await Application.create({ userId: req.user.id, jobId });
+
+    // Generate in-app Notification for the recruiter
+    const Notification = require("../models/Notification");
+    const student = await require("../models/User").findById(req.user.id);
+    await Notification.create({
+      userId: job.recruiterId, // Send to the recruiter who posted the job
+      type: "general",
+      title: "New Application Received",
+      body: `${student.name || "A student"} has applied for your ${job.title} position.`,
+      link: `/recruiter/applications/${application._id}`
+    });
+
     res.status(201).json(application);
   } catch (err) {
     res.status(500).json({ message: err.message });
