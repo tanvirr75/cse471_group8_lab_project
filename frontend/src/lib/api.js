@@ -200,7 +200,6 @@ export async function getApplicationById(id) {
   if (!res.ok) throw new Error(data.message || "Failed to fetch application");
   return data;
 }
-<<<<<<< HEAD
 
 // Notifications API
 export async function getNotifications() {
@@ -241,5 +240,4 @@ export async function updateProfile(profileData) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Failed to update profile");
   return data;
-}
 }

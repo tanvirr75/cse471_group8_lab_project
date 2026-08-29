@@ -3,7 +3,7 @@ const generateToken = require('../utils/generateToken');
 
 const registerUser = async (req, res, next) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, companyName, universityName } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -17,6 +17,8 @@ const registerUser = async (req, res, next) => {
       email,
       password,
       role: role || 'student',
+      ...(companyName && { companyName }),
+      ...(universityName && { universityName }),
     });
 
     if (user) {

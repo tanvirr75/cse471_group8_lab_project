@@ -10,18 +10,12 @@
 const Job = require("../models/Job");
 const UserProfile = require("../models/UserProfile");
 const Recommendation = require("../models/Recommendation");
-<<<<<<< HEAD
 const Notification = require("../models/Notification");
 const { scoreJob } = require("../services/recommendationEngine");
 
 // Feature 12: threshold above which a new job match triggers an in-app
 // notification. Kept as a simple constant (default 80) per requirement.
 const MATCH_NOTIFY_THRESHOLD = 80;
-
-=======
-const { scoreJob } = require("../services/recommendationEngine");
-
->>>>>>> origin/main
 exports.getRecommendations = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -66,7 +60,7 @@ exports.getRecommendations = async (req, res) => {
           },
           { upsert: true }
         );
-<<<<<<< HEAD
+
 
         // Feature 12: fire an in-app job-match notification when a newly scored
         // job clears the threshold, so students are alerted promptly. Dedupe so
@@ -90,8 +84,7 @@ exports.getRecommendations = async (req, res) => {
             });
           }
         }
-=======
->>>>>>> origin/main
+
       })
     );
 
