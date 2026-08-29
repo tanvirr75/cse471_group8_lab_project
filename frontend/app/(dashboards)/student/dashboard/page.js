@@ -1,33 +1,57 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
+import { getProfile, getCareerRecommendations, generateCareerRecommendations } from '@/lib/api';
 export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // In a real app, this would fetch from an API
   useEffect(() => {
-    // Simulate fetching user dashboard data
-    setTimeout(() => {
-      setUserData({
-        name: 'Student', // Fallback name
-        stats: { jobMatches: 0, applications: 0, interviewing: 0, repos: 0, profileStrength: 0 },
-        employability: 0,
-        scoreFactors: [
-          { label: 'Technical skills', score: 0, color: 'bg-blue-500', width: '0%' },
-          { label: 'GitHub activity', score: 0, color: 'bg-blue-500', width: '0%' },
-          { label: 'Project quality', score: 0, color: 'bg-blue-500', width: '0%' },
-          { label: 'Resume quality', score: 0, color: 'bg-blue-500', width: '0%' },
-          { label: 'Certifications', score: 0, color: 'bg-amber-500', width: '0%' },
-          { label: 'Career readiness', score: 0, color: 'bg-blue-500', width: '0%' },
-        ],
-        recommendation: null,
-        activeApplications: []
-      });
-      setLoading(false);
-    }, 500);
+    const fetchDashboardData = async () => {
+      try {
+        const [profileRes, aiRecs] = await Promise.all([
+          getProfile().catch(() => null),
+          getCareerRecommendations().catch(() => null)
+        ]);
+        
+        const profile = profileRes || {};
+        
+        setUserData({
+          name: profile.name || 'Student',
+          stats: { jobMatches: 12, applications: 3, interviewing: 1, repos: profile.githubData?.repos || 0, profileStrength: 60 },
+          employability: profile.employabilityScore || 0,
+          scoreFactors: [
+            { label: 'Technical skills', score: 0, color: 'bg-blue-500', width: '30%' },
+            { label: 'GitHub activity', score: 0, color: 'bg-blue-500', width: '20%' },
+            { label: 'Project quality', score: 0, color: 'bg-blue-500', width: '40%' },
+            { label: 'Resume quality', score: 0, color: 'bg-blue-500', width: '10%' },
+            { label: 'Certifications', score: 0, color: 'bg-amber-500', width: '0%' },
+            { label: 'Career readiness', score: 0, color: 'bg-blue-500', width: '20%' },
+          ],
+          recommendation: aiRecs,
+          activeApplications: []
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboardData();
   }, []);
+
+  const handleRunAnalysis = async () => {
+    setIsAnalyzing(true);
+    try {
+      const newRecs = await generateCareerRecommendations();
+      setUserData(prev => ({ ...prev, recommendation: newRecs }));
+    } catch (err) {
+      alert("Failed to generate analysis. Make sure your profile has skills and projects!");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   if (loading) {
     return <div className="max-w-6xl mx-auto flex items-center justify-center min-h-[60vh] text-slate-400">Loading dashboard...</div>;
@@ -44,8 +68,19 @@ export default function StudentDashboard() {
             Welcome to your career dashboard. Complete onboarding to see personalized insights.
           </p>
         </div>
-        <button className="bg-blue-600 hover:bg-blue-700 px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-blue-500/20 whitespace-nowrap">
-          + Run new analysis
+        <button 
+          onClick={handleRunAnalysis}
+          disabled={isAnalyzing}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-5 py-2.5 rounded-xl text-sm font-medium transition shadow-lg shadow-blue-500/20 whitespace-nowrap flex items-center gap-2"
+        >
+          {isAnalyzing ? (
+            <>
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+              Scanning Profile...
+            </>
+          ) : (
+            "+ Run new analysis"
+          )}
         </button>
       </div>
 
@@ -126,16 +161,16 @@ export default function StudentDashboard() {
             ) : (
               <div className="py-4 text-center border border-dashed border-[#1e293b] rounded-lg bg-[#0b1120]">
                 <p className="text-slate-400 text-sm">Not enough data for AI recommendations.</p>
-                <p className="text-slate-500 text-xs mt-1">Connect GitHub and upload resume.</p>
+                <p className="text-slate-500 text-xs mt-1">Add skills and projects, then run analysis.</p>
               </div>
             )}
           </div>
           {userData?.recommendation && (
-            <div className="flex gap-8 mt-6">
-              {userData.recommendation.roles.map((role, idx) => (
-                <div key={idx}>
+            <div className="flex gap-4 mt-6">
+              {userData.recommendation.roles?.slice(0, 3).map((role, idx) => (
+                <div key={idx} className="flex-1 bg-[#0b1120] p-3 rounded-lg border border-[#1e293b]">
                   <p className={`text-2xl font-bold ${idx === 0 ? 'text-blue-400' : 'text-slate-300'}`}>{role.percentage}%</p>
-                  <p className="text-xs text-slate-400 mt-1">{role.name}</p>
+                  <p className="text-xs text-slate-400 mt-1 font-medium leading-tight">{role.name}</p>
                 </div>
               ))}
             </div>

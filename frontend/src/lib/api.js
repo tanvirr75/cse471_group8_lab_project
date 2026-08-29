@@ -151,6 +151,24 @@ export async function scheduleInterview(applicationId, interviewData) {
 }
 
 // Feature 11: persisted recommendations from the smart recommendation engine.
+export async function getCareerRecommendations() {
+  const res = await fetch(`${API_URL}/api/recommendations/career`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load career recommendations");
+  return data;
+}
+
+export async function generateCareerRecommendations() {
+  const res = await fetch(`${API_URL}/api/recommendations/career`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to generate career recommendations");
+  return data;
+}
 // Pass { refresh: "true" } to force a re-score of every open job.
 export async function getRecommendations(params = {}) {
   const query = new URLSearchParams(params).toString();

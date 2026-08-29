@@ -1,5 +1,4 @@
 const User = require('../models/User');
-const UserProfile = require('../models/UserProfile');
 
 exports.getAnalytics = async (req, res) => {
   try {
@@ -23,9 +22,7 @@ exports.getAnalytics = async (req, res) => {
     const students = await User.find({ 
       role: 'student', 
       university: { $regex: new RegExp(`^${uniName}$`, 'i') } 
-    }).select('_id department');
-
-    const studentIds = students.map(s => s._id);
+    }).select('_id department skills employabilityScore');
 
     // 2. Aggregate department distribution
     const departmentCounts = {};
@@ -42,23 +39,21 @@ exports.getAnalytics = async (req, res) => {
     // Sort departments by count descending
     departmentBreakdown.sort((a, b) => b.count - a.count);
 
-    // 3. Fetch user profiles for these students to get skills, scores, etc.
-    const profiles = await UserProfile.find({ userId: { $in: studentIds } });
-
+    // 3. Aggregate Skills and Employability Score
     let totalEmployability = 0;
     const skillCounts = {};
     let profilesWithScores = 0;
 
-    profiles.forEach(profile => {
+    students.forEach(student => {
       // Calculate avg employability score
-      if (profile.employabilityScore > 0) {
-        totalEmployability += profile.employabilityScore;
+      if (student.employabilityScore > 0) {
+        totalEmployability += student.employabilityScore;
         profilesWithScores++;
       }
 
       // Aggregate skills
-      if (profile.skills && profile.skills.length > 0) {
-        profile.skills.forEach(skill => {
+      if (student.skills && student.skills.length > 0) {
+        student.skills.forEach(skill => {
           const s = skill.trim();
           skillCounts[s] = (skillCounts[s] || 0) + 1;
         });

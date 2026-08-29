@@ -58,6 +58,15 @@ const userSchema = new mongoose.Schema(
       languages: { type: Number, default: 0 },
       contributions: { type: Number, default: 0 }
     },
+    aiCareerRecommendation: {
+      text: String,
+      roles: [{
+        name: String,
+        percentage: Number,
+        reason: String
+      }],
+      lastGeneratedAt: Date
+    },
 
     // Feature 13: Recruiter Shortlisting
     shortlistedCandidates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
@@ -67,9 +76,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

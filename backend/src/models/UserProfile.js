@@ -55,6 +55,15 @@ const userProfileSchema = new mongoose.Schema(
 
     // Feature 10: AI Career Recommendations
     careerInterests: [{ type: String }],
+    aiCareerRecommendation: {
+      text: String,
+      roles: [{
+        name: String,
+        percentage: Number,
+        reason: String
+      }],
+      lastGeneratedAt: Date
+    },
 
     // Core skills for the matching engine
     skills: [{ type: String }],
