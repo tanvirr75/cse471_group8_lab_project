@@ -141,6 +141,14 @@ export default function CareerReadinessPage() {
                   <div className="text-sm text-slate-300">
                     <strong>Recommended Project:</strong> {step.recommendedProjects.join(', ')}
                   </div>
+<<<<<<< HEAD
+                  {step.suggestedResources && step.suggestedResources.length > 0 && (
+                    <div className="text-sm text-slate-300">
+                      <strong>Suggested Resources:</strong> {step.suggestedResources.join(', ')}
+                    </div>
+                  )}
+=======
+>>>>>>> origin/main
                 </div>
               ))}
             </div>

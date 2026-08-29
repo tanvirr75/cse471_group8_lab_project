@@ -25,7 +25,6 @@ exports.createJob = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
 exports.getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id);

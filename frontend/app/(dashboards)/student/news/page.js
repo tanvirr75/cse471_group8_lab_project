@@ -17,6 +17,7 @@ export default function CareerHubPage() {
   const fetchCareerData = async () => {
     try {
       setLoading(true);
+
       // Fetch both internal jobs and external news/jobs
       const [newsResponse, internalJobsResponse] = await Promise.all([
         getTechNews().catch(() => ({ jobs: [], trends: [] })),
@@ -37,6 +38,7 @@ export default function CareerHubPage() {
 
       setJobs(combinedJobs);
       setTrends(newsResponse.trends || []);
+
       setError(null);
     } catch (err) {
       console.error('Error fetching career data:', err);

@@ -22,7 +22,14 @@ router.patch("/:id", updateApplicationStatus);
 
 // Recruiter routes
 router.get("/recruiter", authorizeRoles("recruiter"), getRecruiterApplications);
+<<<<<<< HEAD
 router.get("/:id", authorizeRoles("recruiter"), getApplicationById);
+=======
+<<<<<<< HEAD
+router.get("/:id", authorizeRoles("recruiter"), getApplicationById);
+=======
+>>>>>>> origin/main
+>>>>>>> origin/main
 router.post("/:id/interview", authorizeRoles("recruiter"), scheduleInterview);
 
 module.exports = router;

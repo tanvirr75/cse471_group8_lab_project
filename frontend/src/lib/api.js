@@ -172,7 +172,6 @@ export async function getTechNews() {
   if (!res.ok) throw new Error(data.message || "Failed to load news");
   return data;
 }
-
 // Feature 13: Recruiter Candidate Shortlisting
 export async function toggleShortlist(candidateId) {
   const res = await fetch(`${API_URL}/api/recruiters/shortlist/${candidateId}`, {
@@ -201,6 +200,7 @@ export async function getApplicationById(id) {
   if (!res.ok) throw new Error(data.message || "Failed to fetch application");
   return data;
 }
+<<<<<<< HEAD
 
 // Notifications API
 export async function getNotifications() {
@@ -241,4 +241,5 @@ export async function updateProfile(profileData) {
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Failed to update profile");
   return data;
+}
 }

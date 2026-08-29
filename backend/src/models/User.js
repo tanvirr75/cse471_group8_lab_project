@@ -49,7 +49,6 @@ const userSchema = new mongoose.Schema(
     linkedinUsername: { type: String },
     companyName: { type: String },
     universityName: { type: String },
-
     // Dynamic Mockup Fields (Safely falling back if not provided by student yet)
     skills: [{ type: String }],
     cgpa: { type: Number },
