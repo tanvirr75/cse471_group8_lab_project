@@ -12,7 +12,7 @@ export default function ShortlistDashboard() {
     fetchShortlist();
   }, []);
 
-  const fetchShortlist = async () => {
+  async function fetchShortlist() {
     try {
       setLoading(true);
       const data = await getShortlistedCandidates();

@@ -12,7 +12,7 @@ export default function NotificationsPage() {
     fetchNotifications();
   }, []);
 
-  const fetchNotifications = async () => {
+  async function fetchNotifications() {
     try {
       const data = await getNotifications();
       setNotifications(data || []);

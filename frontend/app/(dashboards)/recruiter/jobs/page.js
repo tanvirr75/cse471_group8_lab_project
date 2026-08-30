@@ -12,7 +12,7 @@ export default function MyJobsPage() {
     fetchJobs();
   }, []);
 
-  const fetchJobs = async () => {
+  async function fetchJobs() {
     try {
       setLoading(true);
       const res = await getJobs();
@@ -46,7 +46,7 @@ export default function MyJobsPage() {
             <div className="col-span-full py-12 text-center text-slate-500">Loading jobs...</div>
           ) : jobs.length === 0 ? (
             <div className="col-span-full py-12 text-center text-slate-500">
-              You haven't posted any jobs yet.
+              You haven&apos;t posted any jobs yet.
             </div>
           ) : (
             jobs.map(job => (

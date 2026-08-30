@@ -29,7 +29,6 @@ export default function LoginPage() {
       if (userRole === 'student') router.push('/student/dashboard');
       else if (userRole === 'recruiter') router.push('/recruiter/dashboard');
       else if (userRole === 'university') router.push('/university/dashboard');
-      else if (userRole === 'admin') router.push('/admin/dashboard');
       else router.push('/jobs');
     } catch (err) {
       setError(err.message || 'Failed to login');
@@ -63,7 +62,7 @@ export default function LoginPage() {
         </div>
 
         <div className="relative z-10 text-sm text-slate-500">
-          "SkillSync helped me land my first internship." — CSE student, BRAC
+          &quot;SkillSync helped me land my first internship.&quot; — CSE student, BRAC
         </div>
       </div>
 

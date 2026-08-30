@@ -203,7 +203,7 @@ export default function StudentDashboard() {
               ))
             ) : (
               <div className="py-6 text-center">
-                <p className="text-slate-400 text-sm">You haven't applied to any jobs yet.</p>
+                <p className="text-slate-400 text-sm">You haven&apos;t applied to any jobs yet.</p>
               </div>
             )}
           </div>

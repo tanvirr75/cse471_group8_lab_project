@@ -37,6 +37,7 @@ export default function JobsPage() {
   // Re-fetch whenever a server-side filter changes. Sort is not in this list
   // because it is handled on the client (see below).
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     // Only send filters that are actually set, so "All" means no param at all.

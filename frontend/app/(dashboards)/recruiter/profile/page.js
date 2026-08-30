@@ -18,7 +18,7 @@ export default function CompanyProfilePage() {
     fetchProfile();
   }, []);
 
-  const fetchProfile = async () => {
+  async function fetchProfile() {
     try {
       const data = await getProfile();
       setFormData({

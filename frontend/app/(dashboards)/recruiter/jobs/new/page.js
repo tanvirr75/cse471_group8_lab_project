@@ -178,9 +178,9 @@ export default function CreateJobPage() {
                 <div className="relative">
                   <select name="minimumQualification" value={formData.minimumQualification} onChange={handleChange}
                     className="w-full bg-[#0f111a] border border-[#1e293b] rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 appearance-none">
-                    <option>Pursuing Bachelor's</option>
-                    <option>Bachelor's Degree</option>
-                    <option>Master's Degree</option>
+                    <option>Pursuing Bachelor&apos;s</option>
+                    <option>Bachelor&apos;s Degree</option>
+                    <option>Master&apos;s Degree</option>
                     <option>High School</option>
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 text-xs">▼</div>
@@ -202,7 +202,7 @@ export default function CreateJobPage() {
             <div>
               <h3 className="font-bold text-sm text-white mb-2">Match preview</h3>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Based on these requirements, <strong className="text-white">{previewMatchCount.seventy} students</strong> currently match above 70%, and <strong className="text-white">{previewMatchCount.eightyFive} above 85%</strong>. They'll be notified automatically when you publish.
+                Based on these requirements, <strong className="text-white">{previewMatchCount.seventy} students</strong> currently match above 70%, and <strong className="text-white">{previewMatchCount.eightyFive} above 85%</strong>. They&apos;ll be notified automatically when you publish.
               </p>
             </div>
           </div>

@@ -94,7 +94,7 @@ export default function LandingPage() {
             </motion.div>
             <motion.h1 variants={FADE_UP} className="text-4xl md:text-6xl lg:text-7xl font-extrabold leading-[1.1] tracking-tight mb-8">
               Turn your skills into a <br className="hidden md:block"/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">career you're ready for</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400">career you&apos;re ready for</span>
             </motion.h1>
             <motion.p variants={FADE_UP} className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed mb-10">
               SkillSync analyzes your GitHub, evaluates your resume, and calculates your employability score to seamlessly connect you with the right opportunities.

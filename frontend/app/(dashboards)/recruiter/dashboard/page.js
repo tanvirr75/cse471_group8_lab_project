@@ -49,7 +49,7 @@ export default function RecruiterDashboard() {
   });
   const activeJobs = Array.from(jobsMap.values());
   const activeJobsCount = activeJobs.length;
-  const closingSoonCount = activeJobs.filter(j => j.status === 'closing_soon' || Math.random() > 0.7).length; // Simulated closing soon logic if missing field
+  const closingSoonCount = activeJobs.filter(j => j.status === 'closing_soon').length; // Simulated closing soon logic if missing field
 
   // Top candidates (sorted by match percentage)
   const topCandidates = [...applications]

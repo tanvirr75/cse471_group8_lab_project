@@ -103,7 +103,7 @@ export default function ApplicationsPage() {
                         </a>
                         {app.interviewDetails.message && (
                           <p className="mt-2 text-text-muted italic border-t border-border-dark pt-1">
-                            "{app.interviewDetails.message}"
+                            &quot;{app.interviewDetails.message}&quot;
                           </p>
                         )}
                       </div>

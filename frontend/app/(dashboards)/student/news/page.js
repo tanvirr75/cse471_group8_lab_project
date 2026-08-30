@@ -10,10 +10,6 @@ export default function CareerHubPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchCareerData();
-  }, []);
-
   const fetchCareerData = async () => {
     try {
       setLoading(true);

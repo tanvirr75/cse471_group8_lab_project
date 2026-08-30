@@ -77,7 +77,9 @@ export default function PortfolioPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchPortfolios();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activePortfolio = portfolios[activePortfolioIndex] || {

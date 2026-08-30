@@ -12,7 +12,7 @@ export default function InterviewsPage() {
     fetchInterviews();
   }, []);
 
-  const fetchInterviews = async () => {
+  async function fetchInterviews() {
     try {
       setLoading(true);
       const apps = await getRecruiterApplications();
