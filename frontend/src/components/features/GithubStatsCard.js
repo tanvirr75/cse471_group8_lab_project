@@ -30,39 +30,38 @@ export default function GithubStatsCard({ username }) {
     loadAnalysis();
   }, [username]);
 
-  if (loading) return <p>Loading GitHub stats...</p>;
-  if (error) return <p>GitHub stats unavailable: {error}</p>;
+  if (loading) return <p className="text-sm text-slate-400">Loading GitHub stats...</p>;
+  if (error) return <p className="text-sm text-red-500">GitHub stats unavailable: {error}</p>;
 
   return (
-    <div style={{ border: "1px solid #ccc", padding: "12px", marginBottom: "20px" }}>
-      <h2>My GitHub Snapshot</h2>
-      <p>
-        <strong>{data.username}</strong> - {data.totalRepos} public repositories
+    <div className="bg-[#161b22] border border-[#1e293b] rounded-xl p-8 space-y-6 shadow-lg">
+      <h2 className="text-lg font-bold border-b border-[#1e293b] pb-2">My GitHub Snapshot</h2>
+      <p className="text-sm text-slate-400">
+        <strong className="text-white">{data.username}</strong> - {data.totalRepos} public repositories
       </p>
 
       {data.languageBreakdown.length === 0 ? (
-        <p>No languages detected in these repositories.</p>
+        <p className="text-sm text-slate-400">No languages detected in these repositories.</p>
       ) : (
-        data.languageBreakdown.map((item) => (
-          <div key={item.language} style={{ marginBottom: "6px" }}>
-            <div>
-              {item.language} - {item.count} repos ({item.percent}%)
-            </div>
+        <div className="space-y-4">
+          {data.languageBreakdown.map((item) => (
+            <div key={item.language} className="space-y-2">
+              <div className="text-sm text-slate-400">
+                {item.language} - {item.count} repos ({item.percent}%)
+              </div>
 
-            {/* The bar is just a grey track with a coloured div inside it.
-                The inner div's width is the percent value, so no charting
-                library is needed. */}
-            <div style={{ background: "#eee", width: "100%", height: "10px" }}>
-              <div
-                style={{
-                  background: "#0070f3",
-                  width: `${item.percent}%`,
-                  height: "10px",
-                }}
-              />
+              {/* The bar is just a track with a coloured div inside it.
+                  The inner div's width is the percent value, so no charting
+                  library is needed. */}
+              <div className="w-full h-2.5 bg-[#0f111a] border border-[#1e293b] rounded-full overflow-hidden">
+                <div
+                  className="h-2.5 bg-blue-500 rounded-full"
+                  style={{ width: `${item.percent}%` }}
+                />
+              </div>
             </div>
-          </div>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );

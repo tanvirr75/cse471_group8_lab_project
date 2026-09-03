@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { connectGithubAccount, getConnectedGithubProfile } from '@/lib/api';
+import GithubStatsCard from '@/components/features/GithubStatsCard';
 
 export default function StudentGithubPage() {
   const [loading, setLoading] = useState(true);
@@ -119,6 +120,8 @@ export default function StudentGithubPage() {
             </div>
           </div>
         )}
+
+        {profile && <GithubStatsCard username={profile.login} />}
       </div>
     </div>
   );
