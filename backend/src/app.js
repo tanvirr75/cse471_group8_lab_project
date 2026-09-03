@@ -23,6 +23,7 @@ const universityRoutes = require('./routes/universityRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const newsRoutes = require('./routes/newsRoutes');
 const recruiterRoutes = require('./routes/recruiterRoutes');
+const githubAccountRoutes = require('./routes/githubAccountRoutes');
 
 // App Routes
 app.use('/api/auth', authRoutes);
@@ -39,6 +40,9 @@ app.use('/api/university', universityRoutes);
 app.use('/api/recommendations', recommendationRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/recruiters', recruiterRoutes);
+// Feature 1 - different prefix from '/api/github' (Feature 5) so the two
+// GitHub features don't collide.
+app.use('/api/github-account', githubAccountRoutes);
 
 // Basic route
 app.get("/", (req, res) => {

@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema(
     verificationToken: String,
     resetPasswordToken: String,
     resetPasswordExpire: Date,
-
     // ✅ আপনার (HEAD) থেকে আসা অনবোর্ডিং ফিল্ড
     githubUrl: { type: String, default: '' },
     linkedinUrl: { type: String, default: '' },
@@ -42,10 +41,11 @@ const userSchema = new mongoose.Schema(
     onboardingCompleted: { type: Boolean, default: false },
     university: { type: String, default: '' },
     department: { type: String, default: '' },
-
     // ✅ টিমের (Incoming) থেকে আসা নতুন ফিল্ড
     targetRole: { type: String },
-    githubUsername: { type: String },
+    // Feature 1: GitHub Account Integration - the student's own GitHub
+    // username, saved after we confirm it exists on GitHub.
+    githubUsername: { type: String, default: '' },
     linkedinUsername: { type: String },
     companyName: { type: String },
     universityName: { type: String },
@@ -67,7 +67,6 @@ const userSchema = new mongoose.Schema(
       }],
       lastGeneratedAt: Date
     },
-
     // Feature 13: Recruiter Shortlisting
     shortlistedCandidates: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
@@ -76,8 +75,7 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.pre('save', async function () {
-  if (!this.isModified('password')) {
+userSchema.pre('save', async function () {  if (!this.isModified('password')) {
     return;
   }
   const salt = await bcrypt.genSalt(10);
