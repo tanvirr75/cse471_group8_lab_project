@@ -259,3 +259,24 @@ export async function updateProfile(profileData) {
   if (!res.ok) throw new Error(data.message || "Failed to update profile");
   return data;
 }
+
+// Feature 1: GitHub Account Integration
+export async function connectGithubAccount(username) {
+  const res = await fetch(`${API_URL}/api/github-account/connect`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ username }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to connect GitHub account");
+  return data;
+}
+
+export async function getConnectedGithubProfile() {
+  const res = await fetch(`${API_URL}/api/github-account/profile`, {
+    headers: getAuthHeaders(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || "Failed to load GitHub profile");
+  return data;
+}
